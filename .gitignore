@@ -1,2 +1,3 @@
 *.csv
 disk_report.html
+*.pyc
