@@ -28,13 +28,19 @@ Ferramenta **determinística** (sem IA) que lê um CSV exportado pelo [WinDirSta
 | `disk.csv` | Entrada padrão (export WinDirStat; gitignored) |
 | `disk_report.html` | Saída gerada (gitignored) |
 | `requirements.txt` | `pandas>=2.0`, `jinja2>=3.1` |
+| `scripts/validate_csv.py` | Valida CSV antes da análise |
 
 ## Fluxo de execução
 
 ```bash
 pip install -r requirements.txt
+python scripts/validate_csv.py disk.csv   # opcional, recomendado
 python disk_audit.py [disk.csv] [-o disk_report.html] [-t template_dir]
 ```
+
+### Validar CSV
+
+Execute `python scripts/validate_csv.py [caminho.csv]` antes de gerar o relatório. Retorna exit code 0 se OK, 1 se inválido. Verifica colunas, encoding UTF-8, tipos numéricos, detecção de raiz/perfil e emite warnings úteis.
 
 1. `load_csv()` — lê CSV UTF-8, normaliza paths (`/` → `\`), separa pastas vs arquivos
 2. `analyze()` — detecta raiz, perfil de usuário, agrega métricas e candidatos
@@ -164,6 +170,7 @@ Editar `disk_dashboard_template.html`. Se novos campos forem necessários, esten
 - Não alterar `BYTES_PER_GB` sem atualizar labels do dashboard
 - Não expor paths reais do usuário em commits (CSV e report são gitignored)
 
-## Referência detalhada
+## Recursos adicionais
 
-Para lista completa de regras, padrões e funções de rationale, ver [reference.md](reference.md).
+- Exemplos de uso e troubleshooting: [examples.md](examples.md)
+- Lista completa de regras, padrões e rationales: [reference.md](reference.md)
