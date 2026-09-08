@@ -1,3 +1,4 @@
 *.csv
+!tests/fixtures/*.csv
 disk_report.html
 *.pyc
