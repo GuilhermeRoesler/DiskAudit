@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Auditoria do Disco C: — 250 GB</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #161a22;
+    --panel2: #1d222d;
+    --border: #262c39;
+    --text: #e8ecf3;
+    --muted: #9aa3b2;
+    --accent: #f59e0b;
+    --safe: #22c55e;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+               line-height: 1.5; }
+  .container { max-width: 1300px; margin: 0 auto; padding: 28px 24px 64px; }
+  h1 { margin: 0 0 4px; font-size: 28px; }
+  h2 { margin: 36px 0 14px; font-size: 20px; border-left: 3px solid var(--accent); padding-left: 10px; }
+  .sub { color: var(--muted); margin-bottom: 18px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin: 22px 0; }
+  .kpi { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .kpi .v { font-size: 26px; font-weight: 600; }
+  .kpi .l { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+  .kpi.safe .v { color: var(--safe); }
+  .kpi.warn .v { color: var(--warn); }
+  .kpi.danger .v { color: var(--danger); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .grid3 { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; }
+  @media (max-width: 900px) {
+    .grid2, .grid3 { grid-template-columns: 1fr; }
+  }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+  .panel h3 { margin: 0 0 14px; font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; cursor: pointer; }
+  th:hover { color: var(--text); }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .pill.safe { background: rgba(34,197,94,.15); color: var(--safe); }
+  .pill.warn { background: rgba(245,158,11,.15); color: var(--warn); }
+  .pill.danger { background: rgba(239,68,68,.15); color: var(--danger); }
+  .pill.info { background: rgba(59,130,246,.15); color: var(--info); }
+  .bar { background: var(--panel2); border-radius: 4px; overflow: hidden; height: 8px; min-width: 60px; max-width: 200px; }
+  .bar > div { background: var(--accent); height: 100%; }
+  .bar.s > div { background: var(--safe); }
+  .bar.w > div { background: var(--warn); }
+  .bar.d > div { background: var(--danger); }
+  .filterbox { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  .filterbox input, .filterbox select { background: var(--panel2); color: var(--text); border: 1px solid var(--border);
+                                         border-radius: 6px; padding: 6px 10px; font-size: 13px; outline: none; }
+  .path { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 12px; word-break: break-all; }
+  .rationale { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .chartwrap { position: relative; height: 320px; }
+  .chartwrap.small { height: 220px; }
+  .legend-note { color: var(--muted); font-size: 12px; margin-top: 6px; }
+  .summary-block { background: linear-gradient(135deg, rgba(245,158,11,.08), rgba(59,130,246,.04));
+                   border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin: 22px 0; }
+  details > summary { cursor: pointer; color: var(--muted); padding: 6px 0; }
+  details > summary:hover { color: var(--text); }
+  code { background: var(--panel2); padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Auditoria de disco — C:</h1>
+  <div class="sub">WinDirStat snapshot processado em 08/09/2026 · <span id="root-summary"></span></div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="v" id="kpi-total"></div><div class="l">Total em uso</div></div>
+    <div class="kpi"><div class="v" id="kpi-files"></div><div class="l">Arquivos</div></div>
+    <div class="kpi"><div class="v" id="kpi-users-pct"></div><div class="l">% em Users</div></div>
+    <div class="kpi safe"><div class="v" id="kpi-safe"></div><div class="l">Recuperação segura</div></div>
+    <div class="kpi warn"><div class="v" id="kpi-careful"></div><div class="l">Com cuidado</div></div>
+  </div>
+
+  <div class="summary-block">
+    <strong>Resumo executivo:</strong>
+    Seu disco tem <span id="sum-total"></span> em uso, dos quais <strong>56%</strong> estão em <code>C:\Users\TestUser</code>. Principais oportunidades: <strong>Docker</strong> (15.0 GB — dev (docker)); <strong>WinSxS</strong> (12.0 GB — windows); <strong>node_modules</strong> (5.5 GB — dev (node_modules)); <strong>$Recycle.Bin</strong> (3.5 GB — lixeira). Há ~<strong>18 GB recuperáveis com segurança</strong> e ~<strong>27 GB</strong> que dependem das suas escolhas.
+  </div>
+
+  <h2>Distribuição por área do disco</h2>
+  <div class="grid2">
+    <div class="panel">
+      <h3>Top pastas raiz</h3>
+      <div class="chartwrap"><canvas id="chart-level2"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>Subpastas de AppData\Local</h3>
+      <div class="chartwrap"><canvas id="chart-appdata"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-top: 18px;">
+    <div class="panel">
+      <h3>Subpastas de AppData\Roaming</h3>
+      <div class="chartwrap small"><canvas id="chart-roaming"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>Padrões detectados (dedup por pasta-pai)</h3>
+      <div class="chartwrap small"><canvas id="chart-patterns"></canvas></div>
+    </div>
+  </div>
+
+  <h2>Plano de ação — candidatos a remoção</h2>
+  <div class="sub">Itens classificados por risco. "Seguro" = lixo confirmado; "Cuidado" = depende do uso atual; "Não tocar" = dados pessoais para revisar/backup.</div>
+  <div class="filterbox">
+    <input id="filter-cand" placeholder="Filtrar candidatos…">
+    <select id="risk-cand">
+      <option value="">Todos os riscos</option>
+      <option value="seguro">Apenas seguros</option>
+      <option value="cuidado">Apenas com cuidado</option>
+      <option value="nao_tocar">Apenas não-tocar</option>
+    </select>
+  </div>
+  <div class="panel" style="padding: 0;">
+    <table id="tbl-cand">
+      <thead><tr>
+        <th data-sort="size" style="width: 100px;">Tamanho ↓</th>
+        <th data-sort="risk" style="width: 90px;">Risco</th>
+        <th data-sort="category" style="width: 140px;">Categoria</th>
+        <th>Caminho / Ação / Justificativa</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <h2>Top 40 arquivos individuais</h2>
+  <div class="filterbox">
+    <input id="filter-file" placeholder="Filtrar arquivos…">
+  </div>
+  <div class="panel" style="padding: 0;">
+    <table id="tbl-file">
+      <thead><tr>
+        <th data-sort="gb" style="width: 100px;">Tamanho ↓</th>
+        <th data-sort="mtime" style="width: 110px;">Modificado</th>
+        <th>Caminho</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <h2>Idade dos arquivos por ano</h2>
+  <div class="panel">
+    <div class="chartwrap small"><canvas id="chart-years"></canvas></div>
+    <div class="legend-note">Pico no ano corrente reflete caches/apps que recriam arquivos com data atual.</div>
+  </div>
+
+  <details style="margin-top: 24px;">
+    <summary>Ver: tipos de arquivo por extensão (top 20)</summary>
+    <div class="panel" style="margin-top: 12px;">
+      <table id="tbl-ext">
+        <thead><tr><th>Extensão</th><th class="num">Qtd</th><th class="num">Tamanho</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </details>
+
+  <div style="margin-top: 40px; color: var(--muted); font-size: 12px;">
+    Gerado por disk_audit.py a partir do export WinDirStat (34 linhas).
+    Tamanhos físicos (espaço em disco) — diferente de tamanho lógico em ~5.0 GB devido a compressão NTFS.
+  </div>
+</div>
+
+<script>
+const DATA = {"root_gb": 250.0, "root_files": 5000, "tier_totals": {"seguro": 18.1, "cuidado": 27.0, "nao_tocar": 35.5}, "level2": [{"path": "C:\\Users", "gb": 140.0, "files": 3200}, {"path": "C:\\Windows", "gb": 45.0, "files": 800}, {"path": "C:\\Program Files", "gb": 28.0, "files": 400}, {"path": "C:\\ProgramData", "gb": 8.0, "files": 100}, {"path": "C:\\$Recycle.Bin", "gb": 3.5, "files": 50}], "appdata_local": [{"path": "Docker", "gb": 15.0, "files": 20}, {"path": "Packages", "gb": 6.0, "files": 300}, {"path": "npm-cache", "gb": 3.2, "files": 200}, {"path": "Temp", "gb": 2.8, "files": 100}], "appdata_roaming": [{"path": "Opera Software", "gb": 8.0, "files": 90}, {"path": "Code", "gb": 2.5, "files": 80}], "top_files": [{"path": "C:\\Users\\TestUser\\Videos\\vacation_4k.mp4", "gb": 8.0, "mtime": "2022-08-20"}, {"path": "C:\\ProgramData\\docker_data.vhdx", "gb": 5.0, "mtime": "2024-04-15"}, {"path": "C:\\Users\\TestUser\\Downloads\\installer.iso", "gb": 4.5, "mtime": "2023-06-10"}, {"path": "C:\\Users\\TestUser\\bigfile.bin", "gb": 3.0, "mtime": "2023-01-15"}, {"path": "C:\\Users\\TestUser\\Documents\\backup.zip", "gb": 2.2, "mtime": "2021-03-01"}], "pattern_summary": [{"pattern": "Downloads", "gb": 18.0, "hits": 1}, {"pattern": "Docker", "gb": 15.0, "hits": 1}, {"pattern": "WinSxS", "gb": 12.0, "hits": 1}, {"pattern": "AppData\\Local\\Packages", "gb": 6.0, "hits": 1}, {"pattern": "node_modules", "gb": 5.5, "hits": 3}, {"pattern": "$Recycle.Bin", "gb": 3.5, "hits": 1}, {"pattern": "AppData\\Local\\npm-cache", "gb": 3.2, "hits": 1}, {"pattern": "AppData\\Local\\Temp", "gb": 2.8, "hits": 1}, {"pattern": "Temp", "gb": 2.8, "hits": 1}, {"pattern": "AppData\\Roaming\\Code", "gb": 2.5, "hits": 1}, {"pattern": "AppData\\Local\\Mozilla\\Firefox\\Profiles\\…\\cache2", "gb": 1.2, "hits": 1}, {"pattern": "AppData\\Local\\Opera Software\\…\\Cache", "gb": 1.1, "hits": 1}, {"pattern": "AppData\\Local\\Google\\Chrome\\User Data\\Default\\Cache", "gb": 0.8, "hits": 1}], "candidates": [{"path": "C:\\Users\\TestUser\\Videos", "size": 22.0, "risk": "nao_tocar", "category": "Pessoal (vídeo)", "action": "Mover para nuvem se pouco acessado", "rationale": "Conteúdo pessoal (22.0 GB). Revise antes de deletar; considere backup em nuvem."}, {"path": "C:\\Users\\TestUser\\AppData\\Local\\Docker", "size": 15.0, "risk": "cuidado", "category": "Dev (Docker)", "action": "docker system prune -a --volumes", "rationale": "Docker (15.0 GB). docker_data.vhdx = 5.0 GB. Considere docker system prune -a --volumes."}, {"path": "C:\\Windows\\WinSxS", "size": 12.0, "risk": "cuidado", "category": "Windows", "action": "DISM /Online /Cleanup-Image /StartComponentCleanup /ResetBase", "rationale": "Component store do Windows (12.0 GB). Não delete manualmente. Use: DISM /Online /Cleanup-Image /StartComponentCleanup /ResetBase"}, {"path": "C:\\Users\\TestUser\\Documents", "size": 9.0, "risk": "nao_tocar", "category": "Pessoal (documentos)", "action": "Revisar manualmente", "rationale": "Conteúdo pessoal (9.0 GB). Revise antes de deletar; considere backup em nuvem."}, {"path": "Múltiplos\\…\\node_modules", "size": 5.5, "risk": "seguro", "category": "Dev (node_modules)", "action": "npx npkill ou deletar node_modules de projetos inativos", "rationale": "3 pastas node_modules (5.5 GB). Maiores: frontend (2.5 GB), backend (1.8 GB), mobile (1.2 GB). npm install recria."}, {"path": "C:\\Users\\TestUser\\Pictures", "size": 4.5, "risk": "nao_tocar", "category": "Pessoal", "action": "Revisar manualmente", "rationale": "Conteúdo pessoal (4.5 GB). Revise antes de deletar; considere backup em nuvem."}, {"path": "C:\\$Recycle.Bin", "size": 3.5, "risk": "seguro", "category": "Lixeira", "action": "Esvaziar Lixeira", "rationale": "50 arquivos na Lixeira (3.5 GB). Arquivos já marcados para exclusão — esvazie a Lixeira para liberar espaço."}, {"path": "C:\\Users\\TestUser\\AppData\\Local\\npm-cache", "size": 3.2, "risk": "seguro", "category": "Cache de pacotes", "action": "npm cache clean --force", "rationale": "Cache npm (3.2 GB). Só cache — refaz download quando precisa."}, {"path": "C:\\Users\\TestUser\\AppData\\Local\\Temp", "size": 2.8, "risk": "seguro", "category": "Cache", "action": "Esvaziar %temp%", "rationale": "2.8 GB de temporários. Software recria o que precisar ao deletar."}, {"path": "C:\\Users\\TestUser\\AppData\\Local\\Mozilla\\Firefox\\Profiles\\abc.default\\cache2", "size": 1.2, "risk": "seguro", "category": "Cache de navegador", "action": "Limpar cache do Firefox", "rationale": "1.2 GB / 80 arquivos de cache. Limpe cache nas configurações de privacidade (não marque senhas/favoritos)."}, {"path": "C:\\Users\\TestUser\\AppData\\Local\\Opera Software\\Opera Stable\\Cache", "size": 1.1, "risk": "seguro", "category": "Cache de navegador", "action": "Limpar cache do Opera", "rationale": "1.1 GB / 60 arquivos de cache. Limpe cache nas configurações de privacidade (não marque senhas/favoritos)."}, {"path": "C:\\Users\\TestUser\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Cache", "size": 0.8, "risk": "seguro", "category": "Cache de navegador", "action": "Limpar cache do Chrome", "rationale": "0.8 GB / 70 arquivos de cache. Limpe cache nas configurações de privacidade (não marque senhas/favoritos)."}], "years_data": [{"year": "2021", "files": 1, "gb": 2.2}, {"year": "2022", "files": 1, "gb": 8.0}, {"year": "2023", "files": 2, "gb": 7.5}, {"year": "2024", "files": 1, "gb": 5.0}], "ext_top": [{"ext": "mp4", "count": 1, "gb": 8.0}, {"ext": "vhdx", "count": 1, "gb": 5.0}, {"ext": "iso", "count": 1, "gb": 4.5}, {"ext": "bin", "count": 1, "gb": 3.0}, {"ext": "zip", "count": 1, "gb": 2.2}], "compression_delta_gb": 5.0, "row_count": 34};
+
+function fmtGB(g) {
+  if (g >= 1) return g.toFixed(2) + ' GB';
+  return (g * 1024).toFixed(0) + ' MB';
+}
+function fmtNum(n) {
+  return n.toLocaleString('pt-BR');
+}
+
+// KPIs
+document.getElementById('kpi-total').textContent = DATA.root_gb.toFixed(1) + ' GB';
+document.getElementById('kpi-files').textContent = fmtNum(DATA.root_files);
+const usersGB = DATA.level2.find(x => x.path.includes('\\Users'))?.gb || 0;
+document.getElementById('kpi-users-pct').textContent = (usersGB / DATA.root_gb * 100).toFixed(0) + '%';
+document.getElementById('kpi-safe').textContent = DATA.tier_totals.seguro.toFixed(1) + ' GB';
+document.getElementById('kpi-careful').textContent = DATA.tier_totals.cuidado.toFixed(1) + ' GB';
+document.getElementById('sum-total').textContent = DATA.root_gb.toFixed(1) + ' GB';
+document.getElementById('root-summary').textContent =
+  fmtNum(DATA.root_files) + ' arquivos · ' + DATA.root_gb.toFixed(1) + ' GB físicos';
+
+function barChart(ctxId, labels, values, color='#f59e0b') {
+  const el = document.getElementById(ctxId);
+  if (!labels.length) {
+    el.parentElement.innerHTML = '<p style="color: var(--muted); font-size: 13px;">Sem dados para exibir.</p>';
+    return;
+  }
+  return new Chart(el, {
+    type: 'bar',
+    data: { labels, datasets: [{ data: values, backgroundColor: color, borderRadius: 4 }] },
+    options: {
+      indexAxis: 'y',
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.x.toFixed(2) + ' GB' }}},
+      scales: {
+        x: { ticks: { color: '#9aa3b2' }, grid: { color: '#262c39' } },
+        y: { ticks: { color: '#e8ecf3', font: { size: 11 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+const l2 = DATA.level2.filter(x => x.gb >= 0.5).slice(0, 10);
+barChart('chart-level2', l2.map(x => x.path.replace(/^..\\/, '')), l2.map(x => x.gb), '#f59e0b');
+
+const adl = DATA.appdata_local.slice(0, 12);
+barChart('chart-appdata', adl.map(x => x.path), adl.map(x => x.gb), '#3b82f6');
+
+const ar = DATA.appdata_roaming.slice(0, 8);
+barChart('chart-roaming', ar.map(x => x.path), ar.map(x => x.gb), '#8b5cf6');
+
+const pat = DATA.pattern_summary.slice(0, 10);
+barChart('chart-patterns', pat.map(x => x.pattern), pat.map(x => x.gb), '#ef4444');
+
+new Chart(document.getElementById('chart-years'), {
+  type: 'bar',
+  data: {
+    labels: DATA.years_data.map(y => y.year),
+    datasets: [{ data: DATA.years_data.map(y => y.gb), backgroundColor: '#22c55e', borderRadius: 4 }]
+  },
+  options: {
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.y.toFixed(2) + ' GB' }}},
+    scales: {
+      x: { ticks: { color: '#9aa3b2' }, grid: { display: false } },
+      y: { ticks: { color: '#9aa3b2' }, grid: { color: '#262c39' } }
+    }
+  }
+});
+
+const RISK_LABEL = { seguro: 'Seguro', cuidado: 'Cuidado', nao_tocar: 'Não tocar' };
+const RISK_CLASS = { seguro: 'safe', cuidado: 'warn', nao_tocar: 'info' };
+
+function escape(s) {
+  return (s || '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+let candState = { sort: 'size', dir: -1, filter: '', risk: '' };
+function renderCand() {
+  const tbody = document.querySelector('#tbl-cand tbody');
+  let rows = DATA.candidates.slice();
+  if (candState.filter) {
+    const f = candState.filter.toLowerCase();
+    rows = rows.filter(r => (r.path + ' ' + r.action + ' ' + r.rationale + ' ' + r.category).toLowerCase().includes(f));
+  }
+  if (candState.risk) rows = rows.filter(r => r.risk === candState.risk);
+  rows.sort((a, b) => {
+    let va, vb;
+    if (candState.sort === 'size') { va = a.size; vb = b.size; }
+    else if (candState.sort === 'risk') { va = a.risk; vb = b.risk; }
+    else if (candState.sort === 'category') { va = a.category; vb = b.category; }
+    if (va < vb) return -1 * candState.dir;
+    if (va > vb) return 1 * candState.dir;
+    return 0;
+  });
+  const maxSize = Math.max(...rows.map(r => r.size), 1);
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td class="num"><strong>${r.size.toFixed(2)} GB</strong>
+        <div class="bar ${RISK_CLASS[r.risk][0]}"><div style="width:${(r.size/maxSize*100).toFixed(0)}%"></div></div>
+      </td>
+      <td><span class="pill ${RISK_CLASS[r.risk]}">${RISK_LABEL[r.risk]}</span></td>
+      <td><span style="color: var(--muted); font-size: 12px;">${escape(r.category)}</span></td>
+      <td>
+        <div class="path">${escape(r.path)}</div>
+        <div style="margin-top: 6px;"><strong>Ação:</strong> ${escape(r.action)}</div>
+        <div class="rationale">${escape(r.rationale)}</div>
+      </td>
+    </tr>`).join('');
+}
+document.getElementById('filter-cand').addEventListener('input', e => { candState.filter = e.target.value; renderCand(); });
+document.getElementById('risk-cand').addEventListener('change', e => { candState.risk = e.target.value; renderCand(); });
+document.querySelectorAll('#tbl-cand th[data-sort]').forEach(th => {
+  th.addEventListener('click', () => {
+    const k = th.dataset.sort;
+    if (candState.sort === k) candState.dir *= -1;
+    else { candState.sort = k; candState.dir = -1; }
+    renderCand();
+  });
+});
+
+let fileState = { sort: 'gb', dir: -1, filter: '' };
+function renderFile() {
+  const tbody = document.querySelector('#tbl-file tbody');
+  let rows = DATA.top_files.slice();
+  if (fileState.filter) {
+    const f = fileState.filter.toLowerCase();
+    rows = rows.filter(r => r.path.toLowerCase().includes(f));
+  }
+  rows.sort((a, b) => {
+    const va = a[fileState.sort], vb = b[fileState.sort];
+    if (va < vb) return -1 * fileState.dir;
+    if (va > vb) return 1 * fileState.dir;
+    return 0;
+  });
+  const maxSize = Math.max(...rows.map(r => r.gb), 1);
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td class="num"><strong>${r.gb.toFixed(2)} GB</strong>
+        <div class="bar"><div style="width:${(r.gb/maxSize*100).toFixed(0)}%"></div></div>
+      </td>
+      <td style="color: var(--muted); font-size: 12px;">${r.mtime}</td>
+      <td><div class="path">${escape(r.path)}</div></td>
+    </tr>`).join('');
+}
+document.getElementById('filter-file').addEventListener('input', e => { fileState.filter = e.target.value; renderFile(); });
+document.querySelectorAll('#tbl-file th[data-sort]').forEach(th => {
+  th.addEventListener('click', () => {
+    const k = th.dataset.sort;
+    if (fileState.sort === k) fileState.dir *= -1;
+    else { fileState.sort = k; fileState.dir = -1; }
+    renderFile();
+  });
+});
+
+const extBody = document.querySelector('#tbl-ext tbody');
+extBody.innerHTML = DATA.ext_top.map(e => `
+  <tr><td>.${escape(e.ext)}</td><td class="num">${fmtNum(e.count)}</td><td class="num">${e.gb.toFixed(2)} GB</td></tr>
+`).join('');
+
+renderCand();
+renderFile();
+</script>
+</body>
+</html>

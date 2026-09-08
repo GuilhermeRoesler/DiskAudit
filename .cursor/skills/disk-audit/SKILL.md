@@ -28,7 +28,10 @@ Ferramenta **determinística** (sem IA) que lê um CSV exportado pelo [WinDirSta
 | `disk.csv` | Entrada padrão (export WinDirStat; gitignored) |
 | `disk_report.html` | Saída gerada (gitignored) |
 | `requirements.txt` | `pandas>=2.0`, `jinja2>=3.1` |
+| `pyproject.toml` | Empacotamento, Ruff, entry point `disk-audit` |
 | `scripts/validate_csv.py` | Valida CSV antes da análise |
+| `examples/demo_report.html` | Relatório demo anonymizado |
+| `docs/` | Exemplos, referência e imagens |
 
 ## Fluxo de execução
 
@@ -172,5 +175,6 @@ Editar `disk_dashboard_template.html`. Se novos campos forem necessários, esten
 
 ## Recursos adicionais
 
-- Exemplos de uso e troubleshooting: [examples.md](examples.md)
-- Lista completa de regras, padrões e rationales: [reference.md](reference.md)
+- Exemplos de uso e troubleshooting: [docs/examples.md](../../../docs/examples.md)
+- Lista completa de regras, padrões e rationales: [docs/reference.md](../../../docs/reference.md)
+- Relatório demo anonymizado: [examples/demo_report.html](../../../examples/demo_report.html)

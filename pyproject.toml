@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "diskaudit"
+version = "1.0.0"
+description = "Auditoria de disco determinística a partir de CSV do WinDirStat — dashboard HTML com plano de ação por risco."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+authors = [{ name = "Guilherme Roesler" }]
+keywords = ["disk", "audit", "windirstat", "dashboard", "cleanup", "windows"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: System :: Systems Administration",
+]
+dependencies = [
+    "pandas>=2.0",
+    "jinja2>=3.1",
+]
+
+[project.optional-dependencies]
+dev = ["ruff>=0.6"]
+
+[project.urls]
+Homepage = "https://github.com/GuilhermeRoesler/DiskAudit"
+Repository = "https://github.com/GuilhermeRoesler/DiskAudit"
+Issues = "https://github.com/GuilhermeRoesler/DiskAudit/issues"
+
+[project.scripts]
+disk-audit = "disk_audit:main"
+
+[tool.setuptools]
+py-modules = ["disk_audit"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+exclude = [".venv", "examples"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]

@@ -43,8 +43,8 @@ class TestDiskAuditSmoke(unittest.TestCase):
         nm = next(c for c in self.data["candidates"] if c["category"] == "Dev (node_modules)")
         self.assertIn("GB", nm["rationale"])
         self.assertNotIn(" MB)", nm["rationale"])
-        self.assertRegex(nm["rationale"], r"frontend \(1\.5 GB\)")
-        self.assertRegex(nm["rationale"], r"backend \(1\.2 GB\)")
+        self.assertRegex(nm["rationale"], r"frontend \(2\.5 GB\)")
+        self.assertRegex(nm["rationale"], r"backend \(1\.8 GB\)")
 
     def test_safe_includes_recycle_and_temp(self) -> None:
         safe_paths = {c["path"] for c in self.data["candidates"] if c["risk"] == "seguro"}
