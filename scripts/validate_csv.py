@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Valida export CSV do WinDirStat antes de rodar disk_audit.py."""
+"""Valida export CSV do WinDirStat antes de rodar a auditoria."""
 
 from __future__ import annotations
 
@@ -8,13 +8,13 @@ import re
 import sys
 from pathlib import Path
 
-# Permite importar disk_audit.py da raiz do projeto
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+_ROOT = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
 
-import pandas as pd
+import pandas as pd  # noqa: E402
 
-# Reutiliza constantes do projeto para manter validação sincronizada
-from disk_audit import (
+from diskaudit.constants import (  # noqa: E402
     COL_FILES,
     COL_LOGICAL,
     COL_MTIME,
@@ -92,7 +92,9 @@ def validate(path: Path) -> tuple[list[str], list[str]]:
     paths = df[COL_PATH].astype(str).str.replace("/", "\\", regex=False)
     roots = paths[paths.str.match(ROOT_PATTERN, na=False)]
     if roots.empty:
-        warnings.append("Nenhuma raiz de unidade detectada (ex.: C:\\). Análise usará fallback por profundidade.")
+        warnings.append(
+            "Nenhuma raiz de unidade detectada (ex.: C:\\). Análise usará fallback por profundidade."
+        )
     else:
         root = roots.iloc[0]
         if not str(root).endswith("\\"):
@@ -119,7 +121,11 @@ def validate(path: Path) -> tuple[list[str], list[str]]:
     n_dirs = int((~files_mask).sum())
     n_files = int(files_mask.sum())
     total_gb = df[COL_PHYSICAL].sum() / 1_000_000_000
-    warnings.append(f"{len(df):,} linhas — {n_dirs:,} pastas, {n_files:,} arquivos — ~{total_gb:.1f} GB físicos".replace(",", "."))
+    warnings.append(
+        f"{len(df):,} linhas — {n_dirs:,} pastas, {n_files:,} arquivos — ~{total_gb:.1f} GB físicos".replace(
+            ",", "."
+        )
+    )
 
     try:
         pd.to_datetime(df[COL_MTIME], utc=True, errors="raise")
@@ -151,7 +157,7 @@ def main() -> int:
             print(f"  ERRO: {e}", flush=True)
         return 1
 
-    print("OK — CSV pronto para disk_audit.py", flush=True)
+    print("OK — CSV pronto para disk-audit", flush=True)
     return 0
 
 
