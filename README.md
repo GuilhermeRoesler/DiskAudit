@@ -1,6 +1,8 @@
 # Disk Audit
 
 [![CI](https://github.com/GuilhermeRoesler/DiskAudit/actions/workflows/ci.yml/badge.svg)](https://github.com/GuilhermeRoesler/DiskAudit/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/GuilhermeRoesler/DiskAudit/branch/main/graph/badge.svg)](https://codecov.io/gh/GuilhermeRoesler/DiskAudit)
+[![PyPI](https://img.shields.io/pypi/v/diskaudit.svg)](https://pypi.org/project/diskaudit/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Demo](https://img.shields.io/badge/demo-live-brightgreen.svg)](https://guilhermeroesler.github.io/DiskAudit/)
@@ -19,7 +21,7 @@ Auditoria de disco **determinística** (sem IA) a partir de export CSV do [WinDi
 
 ## Resultado no fixture de demo
 
-No CSV sintético (`tests/fixtures/sample.csv`, ~250 GB simulados), a análise encontra **~18 GB seguros** para limpeza, **~27 GB em “cuidado”** e **~36 GB “não tocar”** (dados pessoais/sistema) — com justificativa por item.
+No CSV sintético (`tests/fixtures/sample.csv`, ~250 GB simulados), a análise encontra **~20 GB seguros** para limpeza, **~44 GB em “cuidado”** e **~43 GB “não tocar”** (dados pessoais/sistema) — com justificativa por item (Docker, WSL, modelos LLM, Android, caches, etc.).
 
 ## Por que este projeto
 
@@ -55,7 +57,7 @@ flowchart LR
 
 - Python 3.10+
 - [WinDirStat](https://windirstat.net/) para escanear o disco e exportar CSV
-- Navegador moderno (o relatório usa Chart.js via CDN)
+- Navegador moderno (o relatório embute Chart.js — funciona offline)
 
 ## Início rápido (Windows)
 
@@ -83,14 +85,16 @@ python disk_audit.py disk.csv
 
 Abra `disk_report.html` manualmente se não usar `run.bat`.
 
-### Instalar a partir do GitHub
+### Instalar a partir do GitHub / PyPI
 
 ```bash
+pip install diskaudit
+# ou, a partir do código-fonte:
 pip install "git+https://github.com/GuilhermeRoesler/DiskAudit.git"
 disk-audit disk.csv
 ```
 
-O projeto está empacotado para PyPI (`name = diskaudit`); a publicação de releases no índice público pode ser feita a partir das tags `v*`.
+Releases publicadas com tags `v*` disparam o workflow de publicação no PyPI (Trusted Publishing).
 
 ## Uso avançado
 
@@ -159,7 +163,7 @@ coverage run -m unittest discover -s tests -v
 coverage report
 ```
 
-A CI no GitHub Actions roda lint (Ruff), type-check (mypy), coverage e testes em Python 3.10 / 3.12 / 3.13.
+A CI no GitHub Actions roda lint (Ruff), type-check (mypy), coverage (Codecov) e testes em Python 3.10 / 3.12 / 3.13. Tags de release `v*` publicam no PyPI.
 
 ## Estrutura do projeto
 
@@ -169,6 +173,7 @@ diskaudit/                     # Pacote instalável
   candidates.py / rules.py     # Plano de ação por risco
   rationales.py                # Justificativas
   render.py + templates/       # Dashboard HTML
+  static/                      # Chart.js vendored
   cli.py                       # Entry point disk-audit
 disk_audit.py                  # Shim de compatibilidade
 scripts/validate_csv.py        # Validação do CSV
@@ -176,7 +181,7 @@ run.bat                        # Atalho Windows
 examples/demo_report.html      # Demo anonymizada
 docs/                          # Exemplos, referência e imagens
 tests/                         # Unittest + fixture CSV
-.github/workflows/             # CI + GitHub Pages
+.github/workflows/             # CI + Pages + PyPI
 ```
 
 Arquivos locais (não versionados): `disk.csv`, `disk_report.html`.
@@ -191,6 +196,9 @@ O CSV e o relatório contêm caminhos e nomes de arquivos do seu sistema. Ambos 
 - [docs/reference.md](docs/reference.md) — regras, padrões e rationales
 - [examples/README.md](examples/README.md) — como regenerar o demo
 - [CHANGELOG.md](CHANGELOG.md) — histórico de versões
+- [CONTRIBUTING.md](CONTRIBUTING.md) — como contribuir
+- [SECURITY.md](SECURITY.md) — relatório de vulnerabilidades
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — código de conduta
 
 ## Licença
 

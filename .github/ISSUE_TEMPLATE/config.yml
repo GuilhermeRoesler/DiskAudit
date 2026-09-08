@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentação
+    url: https://github.com/GuilhermeRoesler/DiskAudit/blob/main/docs/README.md
+    about: Exemplos, referência de regras e troubleshooting
+  - name: Demo ao vivo
+    url: https://guilhermeroesler.github.io/DiskAudit/
+    about: Relatório gerado a partir do fixture sintético

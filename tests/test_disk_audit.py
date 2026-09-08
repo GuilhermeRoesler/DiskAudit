@@ -12,6 +12,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 import disk_audit as da  # noqa: E402
+from diskaudit import __version__  # noqa: E402
+from diskaudit.cli import main as cli_main  # noqa: E402
+from diskaudit.render import build_executive_summary  # noqa: E402
 from scripts.validate_csv import validate  # noqa: E402
 
 FIXTURE = Path(__file__).parent / "fixtures" / "sample.csv"
@@ -65,9 +68,55 @@ class TestDiskAuditSmoke(unittest.TestCase):
     def test_demo_recovery_story_numbers(self) -> None:
         """Números estáveis do fixture — usados no README de portfólio."""
         self.assertEqual(self.data["root_gb"], 250.0)
-        self.assertAlmostEqual(self.data["tier_totals"]["seguro"], 18.1, places=1)
-        self.assertAlmostEqual(self.data["tier_totals"]["cuidado"], 27.0, places=1)
-        self.assertAlmostEqual(self.data["tier_totals"]["nao_tocar"], 35.5, places=1)
+        self.assertAlmostEqual(self.data["tier_totals"]["seguro"], 20.2, places=1)
+        self.assertAlmostEqual(self.data["tier_totals"]["cuidado"], 44.4, places=1)
+        self.assertAlmostEqual(self.data["tier_totals"]["nao_tocar"], 43.0, places=1)
+
+    def test_expanded_rationales_present(self) -> None:
+        by_path_suffix = {c["path"].rstrip("\\").split("\\")[-1]: c for c in self.data["candidates"]}
+
+        wsl = next(c for c in self.data["candidates"] if c["category"] == "Dev (WSL)")
+        self.assertIn("distro(s) WSL", wsl["rationale"])
+
+        llm = next(c for c in self.data["candidates"] if c["category"] == "Modelos LLM")
+        self.assertIn("llama-7b", llm["rationale"])
+
+        android = [c for c in self.data["candidates"] if c["category"] == "Dev (Android)"]
+        self.assertGreaterEqual(len(android), 2)
+        self.assertTrue(any("SDK" in c["rationale"] for c in android))
+        self.assertTrue(any("Emuladores" in c["rationale"] for c in android))
+
+        minecraft = next(
+            c for c in self.data["candidates"] if c["category"] == "Jogo" and "minecraft" in c["path"].lower()
+        )
+        self.assertIn("mods", minecraft["rationale"].lower())
+
+        docker = next(c for c in self.data["candidates"] if c["category"] == "Dev (Docker)")
+        self.assertIn("docker_data.vhdx", docker["rationale"])
+
+        orphan = next(c for c in self.data["candidates"] if c["category"] == "App órfão")
+        self.assertIn("UWP", orphan["rationale"])
+
+        downloads = [c for c in self.data["candidates"] if c["category"] == "Downloads"]
+        self.assertTrue(downloads)
+        self.assertIn(".zip", downloads[0]["rationale"])
+
+        npm = next(c for c in self.data["candidates"] if c["path"].endswith("\\npm-cache"))
+        self.assertIn("pnpm", npm["rationale"])
+        self.assertIn("pip", npm["rationale"])
+
+        updater = next(c for c in self.data["candidates"] if c["category"] == "Cache de updater")
+        self.assertIn("OllamaSetup.exe", updater["rationale"])
+
+        pagefile = next(c for c in self.data["candidates"] if c["path"].endswith("pagefile.sys"))
+        self.assertEqual(pagefile["risk"], "nao_tocar")
+        self.assertIn("sistema", pagefile["rationale"].lower())
+        self.assertIn("pagefile.sys", by_path_suffix)
+
+    def test_executive_summary_mentions_recovery(self) -> None:
+        html = build_executive_summary(self.data, self.user)
+        self.assertIn("recuperáveis com segurança", html)
+        self.assertIn("TestUser", html)
 
 
 class TestEdgeCases(unittest.TestCase):
@@ -121,6 +170,38 @@ class TestEdgeCases(unittest.TestCase):
             html = out.read_text(encoding="utf-8")
             self.assertIn("const DATA", html)
             self.assertIn("TestUser", html)
+            self.assertIn('name="viewport"', html)
+            self.assertIn("og:title", html)
+            self.assertIn(f"disk-audit</a> v{__version__}", html)
+            self.assertIn("Chart", html)
+
+
+class TestCli(unittest.TestCase):
+    def test_cli_generates_output(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "out.html"
+            code = cli_main([str(FIXTURE), "-o", str(out)])
+            self.assertEqual(code, 0)
+            self.assertTrue(out.is_file())
+            self.assertIn("Auditoria de disco", out.read_text(encoding="utf-8"))
+
+    def test_cli_custom_template_dir(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "custom.html"
+            code = cli_main(
+                [
+                    str(FIXTURE),
+                    "-o",
+                    str(out),
+                    "-t",
+                    str(ROOT / "diskaudit" / "templates"),
+                ]
+            )
+            self.assertEqual(code, 0)
+            self.assertTrue(out.is_file())
+
+    def test_cli_missing_file(self) -> None:
+        self.assertEqual(cli_main([str(ROOT / "no_such_file.csv")]), 1)
 
 
 class TestValidateFixture(unittest.TestCase):

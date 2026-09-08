@@ -94,7 +94,8 @@ def find_candidates(frames: Frames, user: str | None) -> list[dict]:
             path = rule.path_label or row["path_norm"]
             if path in seen_paths:
                 continue
-            if rule.risk == "nao_tocar" and user:
+            # Pastas pessoais só no perfil detectado; arquivos de sistema (pagefile etc.) ficam.
+            if rule.risk == "nao_tocar" and user and rule.rationale_fn == "personal":
                 if not row["path_norm"].startswith(user.rstrip("\\")):
                     continue
             fn = RATIONALE_FNS.get(rule.rationale_fn, rationale_generic)

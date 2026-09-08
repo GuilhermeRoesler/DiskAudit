@@ -1,0 +1,30 @@
+name: Bug report
+description: Relatar um problema na auditoria ou no dashboard
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Antes de abrir: confirme que o CSV passa em `python scripts/validate_csv.py`.
+        **Não anexe CSV reais** com caminhos pessoais — use um fixture anonymizado.
+  - type: textarea
+    id: description
+    attributes:
+      label: O que aconteceu?
+      description: Comportamento observado vs esperado
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versão
+      placeholder: "1.1.0 ou commit SHA"
+  - type: textarea
+    id: repro
+    attributes:
+      label: Como reproduzir
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: true

@@ -5,6 +5,28 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [1.1.0] — 2026-09-08
+
+### Adicionado
+
+- Chart.js empacotado em `diskaudit/static/` (relatórios HTML self-contained / offline)
+- Meta viewport, Open Graph/Twitter, labels e ordenação por teclado no dashboard
+- Footer com link do repositório e versão do pacote
+- `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md` e issue templates
+- Dependabot, pre-commit, workflow de publish no PyPI e upload Codecov
+- Fixture expandido (WSL, LLM, Android, Minecraft, pagefile, downloads ZIP, etc.)
+- Testes de CLI, rationales e resumo executivo
+
+### Alterado
+
+- GitHub Pages gera o demo a partir do fixture a cada deploy (sem drift)
+- `run.bat` instala com `pip install -e .`, valida o CSV e chama a CLI
+- Filtro de perfil `nao_tocar` aplica-se apenas a conteúdo pessoal (não a pagefile/sistema)
+
+### Corrigido
+
+- Candidatos de sistema na raiz do disco (`pagefile.sys`) voltam a aparecer no plano de ação
+
 ## [1.0.1] — 2026-09-08
 
 ### Corrigido
@@ -33,5 +55,6 @@ e este projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 - CSV e relatórios reais continuam fora do versionamento (`.gitignore`)
 
+[1.1.0]: https://github.com/GuilhermeRoesler/DiskAudit/releases/tag/v1.1.0
 [1.0.1]: https://github.com/GuilhermeRoesler/DiskAudit/releases/tag/v1.0.1
 [1.0.0]: https://github.com/GuilhermeRoesler/DiskAudit/releases/tag/v1.0.0

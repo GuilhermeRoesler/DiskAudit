@@ -8,10 +8,18 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+from diskaudit._version import __version__
 from diskaudit.util import log
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 DEFAULT_TEMPLATE_DIR = PACKAGE_DIR / "templates"
+CHART_JS_PATH = PACKAGE_DIR / "static" / "chart.umd.min.js"
+REPO_URL = "https://github.com/GuilhermeRoesler/DiskAudit"
+DEMO_URL = "https://guilhermeroesler.github.io/DiskAudit/"
+OG_IMAGE_URL = (
+    "https://raw.githubusercontent.com/GuilhermeRoesler/DiskAudit/main/"
+    "docs/images/dashboard-hero.png"
+)
 
 
 def build_executive_summary(data: dict, user: str | None) -> str:
@@ -49,20 +57,40 @@ def build_executive_summary(data: dict, user: str | None) -> str:
     )
 
 
+def _load_chart_js() -> str:
+    if not CHART_JS_PATH.is_file():
+        raise FileNotFoundError(
+            f"Chart.js empacotado não encontrado: {CHART_JS_PATH}. "
+            "Reinstale o pacote diskaudit."
+        )
+    return CHART_JS_PATH.read_text(encoding="utf-8")
+
+
 def render_html(
     data: dict, root: str, user: str | None, template_dir: Path, output: Path
 ) -> None:
     env = Environment(
         loader=FileSystemLoader(template_dir), autoescape=select_autoescape(["html"])
     )
+    drive = root.rstrip("\\")
     html = env.get_template("disk_dashboard_template.html").render(
-        drive_label=root.rstrip("\\"),
+        drive_label=drive,
         title_gb=int(data["root_gb"]),
         processed_date=datetime.now().strftime("%d/%m/%Y"),
         summary_html=build_executive_summary(data, user),
         data_json=json.dumps(data, ensure_ascii=False),
         row_count=f"{data['row_count']:,}".replace(",", "."),
         compression_delta=data.get("compression_delta_gb", 0),
+        chart_js=_load_chart_js(),
+        package_version=__version__,
+        repo_url=REPO_URL,
+        demo_url=DEMO_URL,
+        og_image_url=OG_IMAGE_URL,
+        og_title=f"Auditoria de disco — {drive}",
+        og_description=(
+            f"Dashboard Disk Audit: {int(data['root_gb'])} GB analisados, "
+            f"plano de ação classificado por risco."
+        ),
     )
     output.write_text(html, encoding="utf-8")
     log(f"Relatório salvo em {output}")
