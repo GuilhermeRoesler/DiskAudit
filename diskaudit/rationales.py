@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import PureWindowsPath
-
 import pandas as pd
 
 from diskaudit.constants import COL_FILES, COL_MTIME, COL_PHYSICAL

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from pathlib import PureWindowsPath
+from pathlib import Path, PureWindowsPath
 
 import pandas as pd
 
