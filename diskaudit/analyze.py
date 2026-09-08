@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from pathlib import Path
+from pathlib import PureWindowsPath
 
 import pandas as pd
 
@@ -123,7 +123,7 @@ def compute_extensions(frames: Frames, n: int = 20) -> list[dict]:
     files = frames.files.copy()
 
     def ext_of(path: str) -> str:
-        name = Path(path).name
+        name = PureWindowsPath(path).name
         if "." not in name:
             return "(no-ext)"
         return name.rsplit(".", 1)[-1].lower()

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 import pandas as pd
 
@@ -64,8 +64,9 @@ def find_special_candidates(frames: Frames, user: str | None, ctx: dict) -> list
 
     dist_rows = find_dirs(frames, r"\\dist$", 1.0).head(3)
     for _, row in dist_rows.iterrows():
-        parent = Path(row["path_norm"]).parent
-        if (parent / "package.json").exists() or parent.joinpath("src").exists():
+        parent = PureWindowsPath(row["path_norm"]).parent
+        # Checagem local opcional (no Windows real); no CSV sintético raramente casa.
+        if Path(parent).joinpath("package.json").exists() or Path(parent).joinpath("src").exists():
             found.append(
                 make_candidate(row, "seguro", "Dev (build artifact)", "Deletar dist/ — regenere com build", "dist", ctx)
             )
