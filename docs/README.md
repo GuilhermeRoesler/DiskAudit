@@ -5,3 +5,5 @@
 - [images/](images/) — screenshots do dashboard (usados no README)
 - [Demo ao vivo](https://guilhermeroesler.github.io/DiskAudit/) — relatório HTML do fixture
 - [CHANGELOG](../CHANGELOG.md) — histórico de versões
+- [CONTRIBUTING](../CONTRIBUTING.md) — como contribuir
+- [SECURITY](../SECURITY.md) — relatório de vulnerabilidades

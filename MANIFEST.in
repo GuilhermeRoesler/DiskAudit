@@ -1,5 +1,9 @@
 include diskaudit/templates/*.html
+include diskaudit/static/*
 include diskaudit/py.typed
 include LICENSE
 include README.md
 include CHANGELOG.md
+include CONTRIBUTING.md
+include SECURITY.md
+include CODE_OF_CONDUCT.md

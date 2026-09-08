@@ -24,7 +24,8 @@ Ferramenta **determinística** (sem IA) que lê um CSV exportado pelo [WinDirSta
 | Arquivo / pasta | Papel |
 |-----------------|-------|
 | `diskaudit/` | Pacote instalável (analyze, candidates, rules, rationales, render, cli) |
-| `diskaudit/templates/disk_dashboard_template.html` | Template Jinja2 + Chart.js |
+| `diskaudit/templates/disk_dashboard_template.html` | Template Jinja2 + Chart.js embutido |
+| `diskaudit/static/` | Chart.js vendored (offline) |
 | `disk_audit.py` | Shim de compatibilidade (`python disk_audit.py`) |
 | `disk.csv` | Entrada padrão (gitignored) |
 | `disk_report.html` | Saída gerada (gitignored) |
@@ -34,6 +35,7 @@ Ferramenta **determinística** (sem IA) que lê um CSV exportado pelo [WinDirSta
 | `examples/demo_report.html` | Relatório demo anonymizado |
 | `docs/` | Exemplos, referência e imagens |
 | `CHANGELOG.md` | Histórico de versões |
+| `CONTRIBUTING.md` / `SECURITY.md` | Contribuição e segurança |
 
 ## Fluxo de execução
 

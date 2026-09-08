@@ -1,0 +1,23 @@
+name: Feature request
+description: Sugerir regra, padrão ou melhoria de UX
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema / motivação
+      description: Que uso de disco ou fluxo esta feature resolve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposta
+      description: Regra de path, rationale, seção do dashboard, etc.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
+      description: Opcional

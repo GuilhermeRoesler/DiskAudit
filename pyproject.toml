@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "diskaudit"
-version = "1.0.1"
+version = "1.1.0"
 description = "Auditoria de disco determinística a partir de CSV do WinDirStat — dashboard HTML com plano de ação por risco."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -36,6 +36,7 @@ dev = [
     "ruff>=0.6",
     "coverage>=7.0",
     "mypy>=1.8",
+    "pre-commit>=3.5",
 ]
 
 [project.urls]
@@ -52,7 +53,7 @@ disk-audit = "diskaudit.cli:main"
 include = ["diskaudit*"]
 
 [tool.setuptools.package-data]
-diskaudit = ["templates/*.html", "py.typed"]
+diskaudit = ["templates/*.html", "static/*", "py.typed"]
 
 [tool.setuptools]
 py-modules = ["disk_audit"]
@@ -77,7 +78,6 @@ disable_error_code = ["import-untyped"]
 [tool.coverage.run]
 source = ["diskaudit"]
 branch = true
-omit = ["diskaudit/cli.py"]
 
 [tool.coverage.report]
 show_missing = true

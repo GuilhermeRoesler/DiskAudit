@@ -2,8 +2,19 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Auditoria do Disco {{ drive_label }} — {{ title_gb }} GB</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+<meta name="description" content="{{ og_description }}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ og_title }}">
+<meta property="og:description" content="{{ og_description }}">
+<meta property="og:image" content="{{ og_image_url }}">
+<meta property="og:url" content="{{ demo_url }}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ og_title }}">
+<meta name="twitter:description" content="{{ og_description }}">
+<meta name="twitter:image" content="{{ og_image_url }}">
+<script>{{ chart_js | safe }}</script>
 <style>
   :root {
     --bg: #0f1115;
@@ -26,7 +37,7 @@
   h1 { margin: 0 0 4px; font-size: 28px; }
   h2 { margin: 36px 0 14px; font-size: 20px; border-left: 3px solid var(--accent); padding-left: 10px; }
   .sub { color: var(--muted); margin-bottom: 18px; }
-  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin: 22px 0; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin: 22px 0; }
   .kpi { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
   .kpi .v { font-size: 26px; font-weight: 600; }
   .kpi .l { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
@@ -37,13 +48,15 @@
   .grid3 { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; }
   @media (max-width: 900px) {
     .grid2, .grid3 { grid-template-columns: 1fr; }
+    h1 { font-size: 22px; }
   }
   .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
   .panel h3 { margin: 0 0 14px; font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
-  th { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; cursor: pointer; }
-  th:hover { color: var(--text); }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  th[data-sort] { cursor: pointer; }
+  th[data-sort]:hover, th[data-sort]:focus-visible { color: var(--text); outline: 2px solid var(--accent); outline-offset: 2px; }
   td.num { text-align: right; font-variant-numeric: tabular-nums; }
   .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
   .pill.safe { background: rgba(34,197,94,.15); color: var(--safe); }
@@ -57,25 +70,34 @@
   .bar.d > div { background: var(--danger); }
   .filterbox { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
   .filterbox input, .filterbox select { background: var(--panel2); color: var(--text); border: 1px solid var(--border);
-                                         border-radius: 6px; padding: 6px 10px; font-size: 13px; outline: none; }
+                                         border-radius: 6px; padding: 6px 10px; font-size: 13px; }
+  .filterbox input:focus-visible, .filterbox select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .path { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 12px; word-break: break-all; }
   .rationale { color: var(--muted); font-size: 12px; margin-top: 4px; }
   .chartwrap { position: relative; height: 320px; }
   .chartwrap.small { height: 220px; }
+  .empty-row td { color: var(--muted); text-align: center; padding: 24px 10px; }
   .legend-note { color: var(--muted); font-size: 12px; margin-top: 6px; }
   .summary-block { background: linear-gradient(135deg, rgba(245,158,11,.08), rgba(59,130,246,.04));
                    border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin: 22px 0; }
   details > summary { cursor: pointer; color: var(--muted); padding: 6px 0; }
   details > summary:hover { color: var(--text); }
   code { background: var(--panel2); padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+  .footer { margin-top: 40px; color: var(--muted); font-size: 12px; }
+  .footer a { color: var(--accent); text-decoration: none; }
+  .footer a:hover, .footer a:focus-visible { text-decoration: underline; }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+                     overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>Auditoria de disco — {{ drive_label }}</h1>
-  <div class="sub">WinDirStat snapshot processado em {{ processed_date }} · <span id="root-summary"></span></div>
+  <header>
+    <h1>Auditoria de disco — {{ drive_label }}</h1>
+    <div class="sub">WinDirStat snapshot processado em {{ processed_date }} · <span id="root-summary"></span></div>
+  </header>
 
-  <div class="kpis">
+  <div class="kpis" role="group" aria-label="Indicadores principais">
     <div class="kpi"><div class="v" id="kpi-total"></div><div class="l">Total em uso</div></div>
     <div class="kpi"><div class="v" id="kpi-files"></div><div class="l">Arquivos</div></div>
     <div class="kpi"><div class="v" id="kpi-users-pct"></div><div class="l">% em Users</div></div>
@@ -92,30 +114,44 @@
   <div class="grid2">
     <div class="panel">
       <h3>Top pastas raiz</h3>
-      <div class="chartwrap"><canvas id="chart-level2"></canvas></div>
+      <div class="chartwrap" role="img" aria-label="Gráfico de barras das maiores pastas na raiz do disco">
+        <canvas id="chart-level2"></canvas>
+      </div>
+      <p class="visually-hidden" id="chart-level2-desc"></p>
     </div>
     <div class="panel">
       <h3>Subpastas de AppData\Local</h3>
-      <div class="chartwrap"><canvas id="chart-appdata"></canvas></div>
+      <div class="chartwrap" role="img" aria-label="Gráfico de barras das subpastas de AppData Local">
+        <canvas id="chart-appdata"></canvas>
+      </div>
+      <p class="visually-hidden" id="chart-appdata-desc"></p>
     </div>
   </div>
 
   <div class="grid2" style="margin-top: 18px;">
     <div class="panel">
       <h3>Subpastas de AppData\Roaming</h3>
-      <div class="chartwrap small"><canvas id="chart-roaming"></canvas></div>
+      <div class="chartwrap small" role="img" aria-label="Gráfico de barras das subpastas de AppData Roaming">
+        <canvas id="chart-roaming"></canvas>
+      </div>
+      <p class="visually-hidden" id="chart-roaming-desc"></p>
     </div>
     <div class="panel">
       <h3>Padrões detectados (dedup por pasta-pai)</h3>
-      <div class="chartwrap small"><canvas id="chart-patterns"></canvas></div>
+      <div class="chartwrap small" role="img" aria-label="Gráfico de barras dos padrões de uso conhecidos">
+        <canvas id="chart-patterns"></canvas>
+      </div>
+      <p class="visually-hidden" id="chart-patterns-desc"></p>
     </div>
   </div>
 
   <h2>Plano de ação — candidatos a remoção</h2>
   <div class="sub">Itens classificados por risco. "Seguro" = lixo confirmado; "Cuidado" = depende do uso atual; "Não tocar" = dados pessoais para revisar/backup.</div>
   <div class="filterbox">
-    <input id="filter-cand" placeholder="Filtrar candidatos…">
-    <select id="risk-cand">
+    <label class="visually-hidden" for="filter-cand">Filtrar candidatos</label>
+    <input id="filter-cand" type="search" placeholder="Filtrar candidatos…" aria-controls="tbl-cand">
+    <label class="visually-hidden" for="risk-cand">Filtrar por risco</label>
+    <select id="risk-cand" aria-controls="tbl-cand">
       <option value="">Todos os riscos</option>
       <option value="seguro">Apenas seguros</option>
       <option value="cuidado">Apenas com cuidado</option>
@@ -123,11 +159,11 @@
     </select>
   </div>
   <div class="panel" style="padding: 0;">
-    <table id="tbl-cand">
+    <table id="tbl-cand" aria-label="Candidatos a remoção">
       <thead><tr>
-        <th data-sort="size" style="width: 100px;">Tamanho ↓</th>
-        <th data-sort="risk" style="width: 90px;">Risco</th>
-        <th data-sort="category" style="width: 140px;">Categoria</th>
+        <th data-sort="size" tabindex="0" role="columnheader" aria-sort="descending" style="width: 100px;">Tamanho ↓</th>
+        <th data-sort="risk" tabindex="0" role="columnheader" aria-sort="none" style="width: 90px;">Risco</th>
+        <th data-sort="category" tabindex="0" role="columnheader" aria-sort="none" style="width: 140px;">Categoria</th>
         <th>Caminho / Ação / Justificativa</th>
       </tr></thead>
       <tbody></tbody>
@@ -136,13 +172,14 @@
 
   <h2>Top 40 arquivos individuais</h2>
   <div class="filterbox">
-    <input id="filter-file" placeholder="Filtrar arquivos…">
+    <label class="visually-hidden" for="filter-file">Filtrar arquivos</label>
+    <input id="filter-file" type="search" placeholder="Filtrar arquivos…" aria-controls="tbl-file">
   </div>
   <div class="panel" style="padding: 0;">
-    <table id="tbl-file">
+    <table id="tbl-file" aria-label="Maiores arquivos">
       <thead><tr>
-        <th data-sort="gb" style="width: 100px;">Tamanho ↓</th>
-        <th data-sort="mtime" style="width: 110px;">Modificado</th>
+        <th data-sort="gb" tabindex="0" role="columnheader" aria-sort="descending" style="width: 100px;">Tamanho ↓</th>
+        <th data-sort="mtime" tabindex="0" role="columnheader" aria-sort="none" style="width: 110px;">Modificado</th>
         <th>Caminho</th>
       </tr></thead>
       <tbody></tbody>
@@ -151,24 +188,29 @@
 
   <h2>Idade dos arquivos por ano</h2>
   <div class="panel">
-    <div class="chartwrap small"><canvas id="chart-years"></canvas></div>
+    <div class="chartwrap small" role="img" aria-label="Gráfico de barras da idade dos arquivos por ano">
+      <canvas id="chart-years"></canvas>
+    </div>
+    <p class="visually-hidden" id="chart-years-desc"></p>
     <div class="legend-note">Pico no ano corrente reflete caches/apps que recriam arquivos com data atual.</div>
   </div>
 
   <details style="margin-top: 24px;">
     <summary>Ver: tipos de arquivo por extensão (top 20)</summary>
     <div class="panel" style="margin-top: 12px;">
-      <table id="tbl-ext">
+      <table id="tbl-ext" aria-label="Extensões por tamanho">
         <thead><tr><th>Extensão</th><th class="num">Qtd</th><th class="num">Tamanho</th></tr></thead>
         <tbody></tbody>
       </table>
     </div>
   </details>
 
-  <div style="margin-top: 40px; color: var(--muted); font-size: 12px;">
-    Gerado por disk_audit.py a partir do export WinDirStat ({{ row_count }} linhas).
+  <footer class="footer">
+    Gerado por <a href="{{ repo_url }}">disk-audit</a> v{{ package_version }}
+    a partir do export WinDirStat ({{ row_count }} linhas).
     Tamanhos físicos (espaço em disco){% if compression_delta > 0 %} — diferente de tamanho lógico em ~{{ compression_delta }} GB devido a compressão NTFS{% endif %}.
-  </div>
+    · <a href="{{ demo_url }}">Demo ao vivo</a>
+  </footer>
 </div>
 
 <script>
@@ -182,7 +224,6 @@ function fmtNum(n) {
   return n.toLocaleString('pt-BR');
 }
 
-// KPIs
 document.getElementById('kpi-total').textContent = DATA.root_gb.toFixed(1) + ' GB';
 document.getElementById('kpi-files').textContent = fmtNum(DATA.root_files);
 const usersGB = DATA.level2.find(x => x.path.includes('\\Users'))?.gb || 0;
@@ -193,8 +234,16 @@ document.getElementById('sum-total').textContent = DATA.root_gb.toFixed(1) + ' G
 document.getElementById('root-summary').textContent =
   fmtNum(DATA.root_files) + ' arquivos · ' + DATA.root_gb.toFixed(1) + ' GB físicos';
 
+function setChartDesc(id, labels, values) {
+  const el = document.getElementById(id + '-desc');
+  if (!el) return;
+  if (!labels.length) { el.textContent = 'Sem dados para exibir.'; return; }
+  el.textContent = labels.map((l, i) => l + ': ' + values[i].toFixed(2) + ' GB').join('; ');
+}
+
 function barChart(ctxId, labels, values, color='#f59e0b') {
   const el = document.getElementById(ctxId);
+  setChartDesc(ctxId, labels, values);
   if (!labels.length) {
     el.parentElement.innerHTML = '<p style="color: var(--muted); font-size: 13px;">Sem dados para exibir.</p>';
     return;
@@ -226,6 +275,7 @@ barChart('chart-roaming', ar.map(x => x.path), ar.map(x => x.gb), '#8b5cf6');
 const pat = DATA.pattern_summary.slice(0, 10);
 barChart('chart-patterns', pat.map(x => x.pattern), pat.map(x => x.gb), '#ef4444');
 
+setChartDesc('chart-years', DATA.years_data.map(y => String(y.year)), DATA.years_data.map(y => y.gb));
 new Chart(document.getElementById('chart-years'), {
   type: 'bar',
   data: {
@@ -249,6 +299,20 @@ function escape(s) {
   return (s || '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+function updateSortHeaders(tableId, state) {
+  document.querySelectorAll('#' + tableId + ' th[data-sort]').forEach(th => {
+    const k = th.dataset.sort;
+    if (state.sort === k) {
+      th.setAttribute('aria-sort', state.dir < 0 ? 'descending' : 'ascending');
+      const base = th.textContent.replace(/ [↑↓]$/, '');
+      th.textContent = base + (state.dir < 0 ? ' ↓' : ' ↑');
+    } else {
+      th.setAttribute('aria-sort', 'none');
+      th.textContent = th.textContent.replace(/ [↑↓]$/, '');
+    }
+  });
+}
+
 let candState = { sort: 'size', dir: -1, filter: '', risk: '' };
 function renderCand() {
   const tbody = document.querySelector('#tbl-cand tbody');
@@ -267,6 +331,11 @@ function renderCand() {
     if (va > vb) return 1 * candState.dir;
     return 0;
   });
+  updateSortHeaders('tbl-cand', candState);
+  if (!rows.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Nenhum candidato corresponde aos filtros.</td></tr>';
+    return;
+  }
   const maxSize = Math.max(...rows.map(r => r.size), 1);
   tbody.innerHTML = rows.map(r => `
     <tr>
@@ -282,14 +351,17 @@ function renderCand() {
       </td>
     </tr>`).join('');
 }
+function sortCandBy(k) {
+  if (candState.sort === k) candState.dir *= -1;
+  else { candState.sort = k; candState.dir = -1; }
+  renderCand();
+}
 document.getElementById('filter-cand').addEventListener('input', e => { candState.filter = e.target.value; renderCand(); });
 document.getElementById('risk-cand').addEventListener('change', e => { candState.risk = e.target.value; renderCand(); });
 document.querySelectorAll('#tbl-cand th[data-sort]').forEach(th => {
-  th.addEventListener('click', () => {
-    const k = th.dataset.sort;
-    if (candState.sort === k) candState.dir *= -1;
-    else { candState.sort = k; candState.dir = -1; }
-    renderCand();
+  th.addEventListener('click', () => sortCandBy(th.dataset.sort));
+  th.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sortCandBy(th.dataset.sort); }
   });
 });
 
@@ -307,6 +379,11 @@ function renderFile() {
     if (va > vb) return 1 * fileState.dir;
     return 0;
   });
+  updateSortHeaders('tbl-file', fileState);
+  if (!rows.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="3">Nenhum arquivo corresponde ao filtro.</td></tr>';
+    return;
+  }
   const maxSize = Math.max(...rows.map(r => r.gb), 1);
   tbody.innerHTML = rows.map(r => `
     <tr>
@@ -317,13 +394,16 @@ function renderFile() {
       <td><div class="path">${escape(r.path)}</div></td>
     </tr>`).join('');
 }
+function sortFileBy(k) {
+  if (fileState.sort === k) fileState.dir *= -1;
+  else { fileState.sort = k; fileState.dir = -1; }
+  renderFile();
+}
 document.getElementById('filter-file').addEventListener('input', e => { fileState.filter = e.target.value; renderFile(); });
 document.querySelectorAll('#tbl-file th[data-sort]').forEach(th => {
-  th.addEventListener('click', () => {
-    const k = th.dataset.sort;
-    if (fileState.sort === k) fileState.dir *= -1;
-    else { fileState.sort = k; fileState.dir = -1; }
-    renderFile();
+  th.addEventListener('click', () => sortFileBy(th.dataset.sort));
+  th.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sortFileBy(th.dataset.sort); }
   });
 });
 
