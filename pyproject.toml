@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "diskaudit"
-version = "1.0.0"
+version = "1.0.1"
 description = "Auditoria de disco determinística a partir de CSV do WinDirStat — dashboard HTML com plano de ação por risco."
 readme = "README.md"
 license = { file = "LICENSE" }

@@ -5,6 +5,13 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [1.0.1] — 2026-09-08
+
+### Corrigido
+
+- Parse de paths WinDirStat com `PureWindowsPath` (CI Linux)
+- Type-check estável na CI sem conflito de stubs NumPy/pandas
+
 ## [1.0.0] — 2026-09-08
 
 ### Adicionado
@@ -26,4 +33,5 @@ e este projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 - CSV e relatórios reais continuam fora do versionamento (`.gitignore`)
 
+[1.0.1]: https://github.com/GuilhermeRoesler/DiskAudit/releases/tag/v1.0.1
 [1.0.0]: https://github.com/GuilhermeRoesler/DiskAudit/releases/tag/v1.0.0
