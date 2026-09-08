@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+from pathlib import PureWindowsPath
 
 import pandas as pd
 
 from diskaudit.constants import COL_FILES, COL_MTIME, COL_PHYSICAL
 from diskaudit.models import Frames
 from diskaudit.query import find_dirs, find_files
-from diskaudit.util import fmt_files, gb
+from diskaudit.util import fmt_files, gb, win_path
 
 
 def rationale_recycle(row: pd.Series, ctx: dict) -> str:
@@ -54,7 +54,7 @@ def rationale_llm_models(row: pd.Series, ctx: dict) -> str:
         frames.files["path_norm"].str.endswith(".gguf", na=False)
         & frames.files["path_norm"].str.contains(r"\\\.lmstudio\\", regex=True, na=False)
     ].nlargest(5, COL_PHYSICAL)
-    parts = [f"{Path(r['path_norm']).stem[:35]} ({gb(r[COL_PHYSICAL]):.1f} GB)" for _, r in gguf.iterrows()]
+    parts = [f"{win_path(r['path_norm']).stem[:35]} ({gb(r[COL_PHYSICAL]):.1f} GB)" for _, r in gguf.iterrows()]
     detail = ", ".join(parts) if parts else f"{gb(row[COL_PHYSICAL]):.1f} GB total"
     return f"Modelos LLM: {detail}. Remova os não usados — redownload é rápido."
 
@@ -92,7 +92,7 @@ def rationale_node_modules(row: pd.Series, ctx: dict) -> str:
     total_gb = nm["gb"].sum()
     top = nm.nlargest(6, "gb")
     projects = [
-        f"{Path(r['path_norm']).parent.name} ({gb(r[COL_PHYSICAL]):.1f} GB)" for _, r in top.iterrows()
+        f"{win_path(r['path_norm']).parent.name} ({gb(r[COL_PHYSICAL]):.1f} GB)" for _, r in top.iterrows()
     ]
     return (
         f"{len(nm)} pastas node_modules ({total_gb:.1f} GB). "
@@ -145,13 +145,13 @@ def rationale_updater(row: pd.Series, ctx: dict) -> str:
         & frames.files["path_norm"].str.contains(r"Setup\.exe$|\.exe$", regex=True, na=False)
         & (frames.files[COL_PHYSICAL] > 100_000_000)
     ]
-    names = [Path(r["path_norm"]).name for _, r in stale.head(5).iterrows()]
+    names = [win_path(r["path_norm"]).name for _, r in stale.head(5).iterrows()]
     total = sum(gb(r[COL_PHYSICAL]) for _, r in stale.iterrows())
     return f"Instaladores de updater (~{total:.1f} GB). Ex.: {', '.join(names[:3])}. Seguro deletar após update."
 
 
 def rationale_dist(row: pd.Series, ctx: dict) -> str:
-    parent = Path(row["path_norm"]).parent
+    parent = win_path(row["path_norm"]).parent
     return f"dist/ ({gb(row[COL_PHYSICAL]):.1f} GB) em {parent.name}. Saída de build — regenere com npm run build."
 
 
