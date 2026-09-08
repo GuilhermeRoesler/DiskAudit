@@ -1,6 +1,28 @@
 # Disk Audit
 
+[![CI](https://github.com/GuilhermeRoesler/DiskAudit/actions/workflows/ci.yml/badge.svg)](https://github.com/GuilhermeRoesler/DiskAudit/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Auditoria de disco **determinística** (sem IA) a partir de export CSV do [WinDirStat](https://windirstat.net/). Gera um dashboard HTML interativo com KPIs, gráficos e um plano de ação classificado por risco — tudo em português.
+
+> **Atenção:** a ferramenta apenas **recomenda** ações. Nenhum arquivo é deletado automaticamente.
+
+![Dashboard — KPIs e resumo executivo](docs/images/dashboard-hero.png)
+
+![Dashboard — plano de ação com candidatos por risco](docs/images/dashboard-candidates.png)
+
+## Por que este projeto
+
+Disco cheio é um problema recorrente em máquinas de desenvolvimento (Docker, WSL, caches, `node_modules`, modelos LLM). Em vez de apagar “no feeling”, este projeto transforma um snapshot do WinDirStat em um **relatório acionável**: detecta candidatos, classifica risco e explica o porquê.
+
+Demonstra:
+
+- Pipeline de dados tipado (pandas + regras declarativas)
+- UX de relatório (Chart.js, filtros, sort, empty states)
+- Engenharia defensiva (validador de CSV, privacidade no `.gitignore`, testes)
+
+**Demo anonymizada:** abra [examples/demo_report.html](examples/demo_report.html) no navegador (Chart.js via CDN).
 
 ## O que faz
 
@@ -8,9 +30,7 @@ Auditoria de disco **determinística** (sem IA) a partir de export CSV do [WinDi
 - Identifica candidatos a limpeza (Lixeira, Temp, caches, Docker, WSL, jogos, etc.)
 - Classifica cada item em **Seguro**, **Cuidado** ou **Não tocar**
 - Exibe distribuição por pastas raiz, AppData e padrões conhecidos
-- Lista os 40 maiores arquivos, idade por ano e top extensões
-
-> **Atenção:** a ferramenta apenas **recomenda** ações. Nenhum arquivo é deletado automaticamente.
+- Lista os maiores arquivos, idade por ano e top extensões
 
 ## Requisitos
 
@@ -35,8 +55,11 @@ O script instala dependências, gera `disk_report.html` e abre no navegador.
 
 ```bash
 pip install -r requirements.txt
+# ou: pip install -e .
+
 python scripts/validate_csv.py disk.csv   # opcional, recomendado
 python disk_audit.py disk.csv
+# após pip install -e .: disk-audit disk.csv
 ```
 
 Abra `disk_report.html` manualmente se não usar `run.bat`.
@@ -49,6 +72,9 @@ python disk_audit.py "D:\exports\scan.csv" -o "D:\reports\auditoria.html"
 
 # Diretório alternativo do template
 python disk_audit.py disk.csv -t . -o test_report.html
+
+# Regenerar o demo do portfólio
+python disk_audit.py tests/fixtures/sample.csv -o examples/demo_report.html
 ```
 
 | Argumento | Padrão | Descrição |
@@ -74,8 +100,6 @@ Colunas extras (ex.: `Atributos`) são ignoradas.
 
 ## Validar CSV
 
-Antes de gerar o relatório, use o validador para checar colunas, encoding e conteúdo:
-
 ```bash
 python scripts/validate_csv.py disk.csv
 ```
@@ -84,18 +108,28 @@ Retorna exit code `0` se OK, `1` se inválido.
 
 ## Relatório gerado
 
-O dashboard inclui:
-
 | Seção | Conteúdo |
 |-------|----------|
 | KPIs | Total em uso, arquivos, % em Users, GB recuperáveis |
 | Resumo executivo | Principais oportunidades em linguagem natural |
 | Gráficos | Pastas raiz, AppData Local/Roaming, padrões detectados |
 | Plano de ação | Candidatos filtráveis por risco, com ação e justificativa |
-| Top arquivos | 40 maiores arquivos individuais |
+| Top arquivos | Maiores arquivos individuais |
 | Idade por ano | Distribuição temporal dos arquivos |
 
 **Ordem sugerida de limpeza:** candidatos **Seguro** → **Cuidado** (após confirmar que não usa) → revisar **Não tocar** manualmente.
+
+## Testes e qualidade
+
+```bash
+pip install -r requirements.txt
+pip install ruff   # ou: pip install -e ".[dev]"
+
+python -m unittest discover -s tests -v
+ruff check .
+```
+
+A CI no GitHub Actions roda lint (Ruff) e testes em Python 3.10 / 3.12 / 3.13.
 
 ## Estrutura do projeto
 
@@ -104,24 +138,26 @@ disk_audit.py                  # Script principal
 disk_dashboard_template.html   # Template Jinja2 + Chart.js
 scripts/validate_csv.py        # Validação do CSV
 run.bat                        # Atalho Windows (instala + gera + abre)
-requirements.txt               # pandas, jinja2
-.cursor/skills/disk-audit/     # Especificação para agentes Cursor
+requirements.txt               # Dependências runtime
+pyproject.toml                 # Empacotamento + Ruff + entry point disk-audit
+examples/demo_report.html      # Demo anonymizada
+docs/                          # Exemplos, referência e imagens do README
+tests/                         # Unittest + fixture CSV
+.github/workflows/ci.yml       # CI
 ```
 
 Arquivos locais (não versionados): `disk.csv`, `disk_report.html`.
 
 ## Privacidade
 
-O CSV e o relatório contêm caminhos e nomes de arquivos do seu sistema. Ambos estão no `.gitignore` — **não faça commit** desses arquivos.
+O CSV e o relatório contêm caminhos e nomes de arquivos do seu sistema. Ambos estão no `.gitignore` — **não faça commit** desses arquivos. O demo em `examples/` usa apenas dados sintéticos (`TestUser`).
 
-## Estender a ferramenta
+## Documentação
 
-Para adicionar regras de detecção, padrões ou alterar o dashboard, consulte:
-
-- `.cursor/skills/disk-audit/SKILL.md` — especificação do projeto
-- `.cursor/skills/disk-audit/examples.md` — exemplos práticos
-- `.cursor/skills/disk-audit/reference.md` — lista completa de regras e rationales
+- [docs/examples.md](docs/examples.md) — fluxos, extensão de regras, troubleshooting
+- [docs/reference.md](docs/reference.md) — regras, padrões e rationales
+- [examples/README.md](examples/README.md) — como regenerar o demo
 
 ## Licença
 
-Uso pessoal. Sem garantias.
+[MIT](LICENSE) © Guilherme Roesler
