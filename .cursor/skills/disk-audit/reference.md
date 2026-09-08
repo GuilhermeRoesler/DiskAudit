@@ -6,8 +6,8 @@
 |----------------|-------|-----------|------|--------|
 | `$Recycle.Bin` | seguro | Lixeira | Esvaziar Lixeira | 0.1 |
 | `AppData\Local\Temp` | seguro | Cache | Esvaziar %temp% | 0.5 |
-| Opera Software | seguro | Cache de navegador | Limpar cache Opera | 1.0 |
-| Firefox Profiles | seguro | Cache de navegador | Limpar cache Firefox | 1.0 |
+| Opera Software\…\Cache (Local) | seguro | Cache de navegador | Limpar cache Opera | 0.3 |
+| Firefox Profiles\…\cache2 (Local) | seguro | Cache de navegador | Limpar cache Firefox | 0.3 |
 | Chrome Default\Cache | seguro | Cache de navegador | Limpar cache Chrome | 0.3 |
 | npm-cache | seguro | Cache de pacotes | npm cache clean --force | 0.5 |
 | pnpm | seguro | Cache de pacotes | pnpm store prune | 0.5 |
@@ -29,7 +29,7 @@ Regras `nao_tocar` só aparecem se o path estiver **dentro do perfil detectado**
 
 ## PATTERNS (gráfico de padrões)
 
-WinSxS, Downloads, AppData\Local\Packages, $Recycle.Bin, wsl, AppData\Local\Programs, Docker, node_modules, Temp, Steam, .cache, .vscode, AppData\Roaming\Code, .gradle, Epic Games, Installer, npm-cache, Logs, Chrome Cache/User Data, Discord, .m2, OneDrive, WebCache.
+WinSxS, Downloads, AppData\Local\Packages, $Recycle.Bin, wsl, AppData\Local\Programs, Docker, node_modules, Temp, Steam, .cache, .vscode, AppData\Roaming\Code, .gradle, Epic Games, Installer, npm-cache, Logs, Chrome/Firefox/Opera Cache, Chrome User Data, Discord, .m2, OneDrive, WebCache.
 
 ## RATIONALE_FNS
 

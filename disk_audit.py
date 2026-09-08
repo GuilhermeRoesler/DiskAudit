@@ -44,6 +44,8 @@ PATTERNS: list[tuple[str, str]] = [
     ("AppData\\Local\\npm-cache", r"\\AppData\\Local\\npm-cache$"),
     ("Logs", r"\\Logs$"),
     ("AppData\\Local\\Google\\Chrome\\User Data\\Default\\Cache", r"\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Cache$"),
+    ("AppData\\Local\\Mozilla\\Firefox\\Profiles\\…\\cache2", r"\\AppData\\Local\\Mozilla\\Firefox\\Profiles\\[^\\]+\\cache2$"),
+    ("AppData\\Local\\Opera Software\\…\\Cache", r"\\AppData\\Local\\Opera Software\\[^\\]+\\Cache$"),
     ("AppData\\Local\\Google\\Chrome\\User Data", r"\\AppData\\Local\\Google\\Chrome\\User Data$"),
     ("AppData\\Local\\Discord", r"\\AppData\\Local\\Discord$"),
     (".m2", r"\\\.m2$"),
@@ -224,7 +226,7 @@ def rationale_temp(row: pd.Series, ctx: dict) -> str:
 
 def rationale_browser_cache(row: pd.Series, ctx: dict) -> str:
     return (
-        f"{_gb(row[COL_PHYSICAL]):.1f} GB / {_fmt_files(int(row[COL_FILES]))} arquivos no profile. "
+        f"{_gb(row[COL_PHYSICAL]):.1f} GB / {_fmt_files(int(row[COL_FILES]))} arquivos de cache. "
         "Limpe cache nas configurações de privacidade (não marque senhas/favoritos)."
     )
 
@@ -287,7 +289,7 @@ def rationale_node_modules(row: pd.Series, ctx: dict) -> str:
     nm = _find_dirs(frames, r"\\node_modules$", 0.05)
     total_gb = nm["gb"].sum()
     top = nm.nlargest(6, "gb")
-    projects = [f"{Path(r['path_norm']).parent.name} ({_gb(r[COL_PHYSICAL]):.0f} MB)" for _, r in top.iterrows()]
+    projects = [f"{Path(r['path_norm']).parent.name} ({_gb(r[COL_PHYSICAL]):.1f} GB)" for _, r in top.iterrows()]
     return f"{len(nm)} pastas node_modules ({total_gb:.1f} GB). Maiores: {', '.join(projects)}. npm install recria."
 
 
@@ -372,9 +374,9 @@ RATIONALE_FNS = {
 CANDIDATE_RULES: list[CandidateRule] = [
     CandidateRule(r"\\?\$Recycle\.Bin$", "seguro", "Lixeira", "Esvaziar Lixeira", "recycle", 0.1),
     CandidateRule(r"\\AppData\\Local\\Temp$", "seguro", "Cache", "Esvaziar %temp%", "temp", 0.5),
-    CandidateRule(r"\\AppData\\Roaming\\Opera Software$", "seguro", "Cache de navegador", "Limpar cache do Opera", "browser_cache", 1.0),
-    CandidateRule(r"\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles", "seguro", "Cache de navegador", "Limpar cache do Firefox", "browser_cache", 1.0),
-    CandidateRule(r"\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Cache", "seguro", "Cache de navegador", "Limpar cache do Chrome", "browser_cache", 0.3),
+    CandidateRule(r"\\AppData\\Local\\Opera Software\\[^\\]+\\Cache$", "seguro", "Cache de navegador", "Limpar cache do Opera", "browser_cache", 0.3),
+    CandidateRule(r"\\AppData\\Local\\Mozilla\\Firefox\\Profiles\\[^\\]+\\cache2$", "seguro", "Cache de navegador", "Limpar cache do Firefox", "browser_cache", 0.3),
+    CandidateRule(r"\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Cache$", "seguro", "Cache de navegador", "Limpar cache do Chrome", "browser_cache", 0.3),
     CandidateRule(r"\\AppData\\Local\\npm-cache$", "seguro", "Cache de pacotes", "npm cache clean --force", "npm_cache", 0.5),
     CandidateRule(r"\\AppData\\Local\\pnpm$", "seguro", "Cache de pacotes", "pnpm store prune", "npm_cache", 0.5),
     CandidateRule(r"\\AppData\\Local\\pip\\cache$", "seguro", "Cache de pacotes", "pip cache purge", "npm_cache", 0.5),
