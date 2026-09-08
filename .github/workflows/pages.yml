@@ -1,0 +1,57 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "examples/demo_report.html"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare site
+        run: |
+          mkdir -p _site
+          cp examples/demo_report.html _site/index.html
+          cat > _site/404.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="pt-BR">
+          <head>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="0; url=./">
+            <title>Disk Audit</title>
+          </head>
+          <body>
+            <p><a href="./">Abrir demo Disk Audit</a></p>
+          </body>
+          </html>
+          EOF
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

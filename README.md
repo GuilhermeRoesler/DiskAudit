@@ -3,14 +3,23 @@
 [![CI](https://github.com/GuilhermeRoesler/DiskAudit/actions/workflows/ci.yml/badge.svg)](https://github.com/GuilhermeRoesler/DiskAudit/actions/workflows/ci.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Demo](https://img.shields.io/badge/demo-live-brightgreen.svg)](https://guilhermeroesler.github.io/DiskAudit/)
+
+> **EN:** Deterministic disk audit (no AI) from a [WinDirStat](https://windirstat.net/) CSV export. Produces an interactive HTML dashboard with risk-ranked cleanup candidates. UI and reports are in Brazilian Portuguese.
 
 Auditoria de disco **determinística** (sem IA) a partir de export CSV do [WinDirStat](https://windirstat.net/). Gera um dashboard HTML interativo com KPIs, gráficos e um plano de ação classificado por risco — tudo em português.
+
+**[Abrir demo ao vivo →](https://guilhermeroesler.github.io/DiskAudit/)** · [demo local](examples/demo_report.html) · [changelog](CHANGELOG.md)
 
 > **Atenção:** a ferramenta apenas **recomenda** ações. Nenhum arquivo é deletado automaticamente.
 
 ![Dashboard — KPIs e resumo executivo](docs/images/dashboard-hero.png)
 
 ![Dashboard — plano de ação com candidatos por risco](docs/images/dashboard-candidates.png)
+
+## Resultado no fixture de demo
+
+No CSV sintético (`tests/fixtures/sample.csv`, ~250 GB simulados), a análise encontra **~18 GB seguros** para limpeza, **~27 GB em “cuidado”** e **~36 GB “não tocar”** (dados pessoais/sistema) — com justificativa por item.
 
 ## Por que este projeto
 
@@ -19,10 +28,20 @@ Disco cheio é um problema recorrente em máquinas de desenvolvimento (Docker, W
 Demonstra:
 
 - Pipeline de dados tipado (pandas + regras declarativas)
+- Pacote Python instalável (`diskaudit`) com CLI
 - UX de relatório (Chart.js, filtros, sort, empty states)
-- Engenharia defensiva (validador de CSV, privacidade no `.gitignore`, testes)
+- Engenharia defensiva (validador de CSV, privacidade no `.gitignore`, testes + CI)
 
-**Demo anonymizada:** abra [examples/demo_report.html](examples/demo_report.html) no navegador (Chart.js via CDN).
+## Fluxo
+
+```mermaid
+flowchart LR
+  A[CSV WinDirStat] --> B[load_csv]
+  B --> C[analyze]
+  C --> D[find_candidates]
+  D --> E[render_html]
+  E --> F[Dashboard HTML]
+```
 
 ## O que faz
 
@@ -54,15 +73,24 @@ O script instala dependências, gera `disk_report.html` e abre no navegador.
 ### Linha de comando
 
 ```bash
-pip install -r requirements.txt
-# ou: pip install -e .
+pip install -e .
+# ou: pip install -r requirements.txt
 
 python scripts/validate_csv.py disk.csv   # opcional, recomendado
 python disk_audit.py disk.csv
-# após pip install -e .: disk-audit disk.csv
+# após install: disk-audit disk.csv
 ```
 
 Abra `disk_report.html` manualmente se não usar `run.bat`.
+
+### Instalar a partir do GitHub
+
+```bash
+pip install "git+https://github.com/GuilhermeRoesler/DiskAudit.git"
+disk-audit disk.csv
+```
+
+O projeto está empacotado para PyPI (`name = diskaudit`); a publicação de releases no índice público pode ser feita a partir das tags `v*`.
 
 ## Uso avançado
 
@@ -70,18 +98,18 @@ Abra `disk_report.html` manualmente se não usar `run.bat`.
 # CSV e saída em caminhos customizados
 python disk_audit.py "D:\exports\scan.csv" -o "D:\reports\auditoria.html"
 
-# Diretório alternativo do template
-python disk_audit.py disk.csv -t . -o test_report.html
+# Template customizado (pasta com disk_dashboard_template.html)
+python disk_audit.py disk.csv -t diskaudit/templates -o test_report.html
 
 # Regenerar o demo do portfólio
-python disk_audit.py tests/fixtures/sample.csv -o examples/demo_report.html
+python -m diskaudit.cli tests/fixtures/sample.csv -o examples/demo_report.html
 ```
 
 | Argumento | Padrão | Descrição |
 |-----------|--------|-----------|
 | `csv` | `disk.csv` | Caminho do CSV exportado |
 | `-o`, `--output` | `disk_report.html` | Arquivo HTML de saída |
-| `-t`, `--template-dir` | diretório do script | Pasta com `disk_dashboard_template.html` |
+| `-t`, `--template-dir` | `diskaudit/templates` | Pasta com `disk_dashboard_template.html` |
 
 ## Formato do CSV
 
@@ -122,28 +150,33 @@ Retorna exit code `0` se OK, `1` se inválido.
 ## Testes e qualidade
 
 ```bash
-pip install -r requirements.txt
-pip install ruff   # ou: pip install -e ".[dev]"
+pip install -e ".[dev]"
 
 python -m unittest discover -s tests -v
 ruff check .
+mypy
+coverage run -m unittest discover -s tests -v
+coverage report
 ```
 
-A CI no GitHub Actions roda lint (Ruff) e testes em Python 3.10 / 3.12 / 3.13.
+A CI no GitHub Actions roda lint (Ruff), type-check (mypy), coverage e testes em Python 3.10 / 3.12 / 3.13.
 
 ## Estrutura do projeto
 
 ```
-disk_audit.py                  # Script principal
-disk_dashboard_template.html   # Template Jinja2 + Chart.js
+diskaudit/                     # Pacote instalável
+  analyze.py                   # CSV → métricas
+  candidates.py / rules.py     # Plano de ação por risco
+  rationales.py                # Justificativas
+  render.py + templates/       # Dashboard HTML
+  cli.py                       # Entry point disk-audit
+disk_audit.py                  # Shim de compatibilidade
 scripts/validate_csv.py        # Validação do CSV
-run.bat                        # Atalho Windows (instala + gera + abre)
-requirements.txt               # Dependências runtime
-pyproject.toml                 # Empacotamento + Ruff + entry point disk-audit
+run.bat                        # Atalho Windows
 examples/demo_report.html      # Demo anonymizada
-docs/                          # Exemplos, referência e imagens do README
+docs/                          # Exemplos, referência e imagens
 tests/                         # Unittest + fixture CSV
-.github/workflows/ci.yml       # CI
+.github/workflows/             # CI + GitHub Pages
 ```
 
 Arquivos locais (não versionados): `disk.csv`, `disk_report.html`.
@@ -157,6 +190,7 @@ O CSV e o relatório contêm caminhos e nomes de arquivos do seu sistema. Ambos 
 - [docs/examples.md](docs/examples.md) — fluxos, extensão de regras, troubleshooting
 - [docs/reference.md](docs/reference.md) — regras, padrões e rationales
 - [examples/README.md](examples/README.md) — como regenerar o demo
+- [CHANGELOG.md](CHANGELOG.md) — histórico de versões
 
 ## Licença
 

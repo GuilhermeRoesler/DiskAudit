@@ -1,6 +1,6 @@
 # Disk Audit — Referência Detalhada
 
-## CANDIDATE_RULES (disk_audit.py)
+## CANDIDATE_RULES (`diskaudit/rules.py`)
 
 | Regex (resumo) | Risco | Categoria | Ação | min_gb |
 |----------------|-------|-----------|------|--------|

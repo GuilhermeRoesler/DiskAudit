@@ -12,7 +12,7 @@ requires-python = ">=3.10"
 authors = [{ name = "Guilherme Roesler" }]
 keywords = ["disk", "audit", "windirstat", "dashboard", "cleanup", "windows"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: End Users/Desktop",
     "Intended Audience :: Developers",
@@ -24,6 +24,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: System :: Systems Administration",
+    "Typing :: Typed",
 ]
 dependencies = [
     "pandas>=2.0",
@@ -31,15 +32,28 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["ruff>=0.6"]
+dev = [
+    "ruff>=0.6",
+    "coverage>=7.0",
+    "mypy>=1.8",
+    "pandas-stubs>=2.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/GuilhermeRoesler/DiskAudit"
+Documentation = "https://guilhermeroesler.github.io/DiskAudit/"
 Repository = "https://github.com/GuilhermeRoesler/DiskAudit"
 Issues = "https://github.com/GuilhermeRoesler/DiskAudit/issues"
+Changelog = "https://github.com/GuilhermeRoesler/DiskAudit/blob/main/CHANGELOG.md"
 
 [project.scripts]
-disk-audit = "disk_audit:main"
+disk-audit = "diskaudit.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["diskaudit*"]
+
+[tool.setuptools.package-data]
+diskaudit = ["templates/*.html", "py.typed"]
 
 [tool.setuptools]
 py-modules = ["disk_audit"]
@@ -52,3 +66,20 @@ exclude = [".venv", "examples"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+packages = ["diskaudit"]
+ignore_missing_imports = true
+warn_unused_ignores = true
+check_untyped_defs = true
+
+[tool.coverage.run]
+source = ["diskaudit"]
+branch = true
+omit = ["diskaudit/cli.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+fail_under = 70

@@ -60,13 +60,13 @@ FALHOU:
   ✗ Colunas encontradas: Name, Files, Subdirs, Size
 ```
 
-Se as colunas estiverem em inglês, reexporte com WinDirStat em português ou ajuste os nomes em `disk_audit.py` (`COL_*`).
+Se as colunas estiverem em inglês, reexporte com WinDirStat em português ou ajuste os nomes em `diskaudit/constants.py` (`COL_*`).
 
 ## 4. Adicionar candidato para limpeza
 
 **Cenário:** detectar pasta `.nuget\packages` acima de 1 GB.
 
-Em `disk_audit.py`, adicionar à lista `CANDIDATE_RULES`:
+Em `diskaudit/rules.py`, adicionar à lista `CANDIDATE_RULES`:
 
 ```python
 CandidateRule(
@@ -92,7 +92,7 @@ python disk_audit.py
 **Cenário:** destacar pastas `.pnpm-store` no gráfico de padrões.
 
 ```python
-# Em PATTERNS:
+# Em diskaudit/rules.py → PATTERNS:
 (".pnpm-store", r"\\\.pnpm-store$"),
 ```
 
@@ -103,16 +103,17 @@ Regenerar o relatório — o padrão aparece em "Padrões detectados (dedup por 
 **Cenário:** explicar tamanho de pasta Steam com detalhe dos jogos maiores.
 
 ```python
+# Em diskaudit/rationales.py
 def rationale_steam(row: pd.Series, ctx: dict) -> str:
     return (
-        f"Steam ocupa {_gb(row[COL_PHYSICAL]):.1f} GB. "
+        f"Steam ocupa {gb(row[COL_PHYSICAL]):.1f} GB. "
         "Desinstale jogos não usados pelo cliente Steam — não delete a pasta manualmente."
     )
 
-# Registrar:
+# Registrar em RATIONALE_FNS:
 RATIONALE_FNS["steam"] = rationale_steam
 
-# Usar na regra existente de Steam, trocando rationale_fn:
+# Usar na regra em diskaudit/rules.py:
 CandidateRule(r"\\AppData\\Local\\Steam$", "cuidado", "Jogos", "Desinstalar jogos não usados", "steam", 2.0),
 ```
 
@@ -120,7 +121,7 @@ CandidateRule(r"\\AppData\\Local\\Steam$", "cuidado", "Jogos", "Desinstalar jogo
 
 **Cenário:** exibir contagem de candidatos por categoria.
 
-1. Em `analyze()`, adicionar campo ao dict `data`:
+1. Em `diskaudit/analyze.py` → `analyze()`, adicionar campo ao dict `data`:
 
 ```python
 from collections import Counter
@@ -128,7 +129,7 @@ from collections import Counter
 "category_counts": dict(Counter(c["category"] for c in candidates)),
 ```
 
-2. No template, consumir via JS:
+2. No template (`diskaudit/templates/disk_dashboard_template.html`), consumir via JS:
 
 ```javascript
 // Após const DATA = ...
