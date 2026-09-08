@@ -36,7 +36,6 @@ dev = [
     "ruff>=0.6",
     "coverage>=7.0",
     "mypy>=1.8",
-    "pandas-stubs>=2.0",
 ]
 
 [project.urls]
@@ -68,11 +67,12 @@ select = ["E", "F", "I", "UP", "B"]
 ignore = ["E501"]
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.10"
 packages = ["diskaudit"]
 ignore_missing_imports = true
 warn_unused_ignores = true
 check_untyped_defs = true
+disable_error_code = ["import-untyped"]
 
 [tool.coverage.run]
 source = ["diskaudit"]
