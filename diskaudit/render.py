@@ -18,7 +18,7 @@ REPO_URL = "https://github.com/GuilhermeRoesler/DiskAudit"
 DEMO_URL = "https://guilhermeroesler.github.io/DiskAudit/"
 OG_IMAGE_URL = (
     "https://raw.githubusercontent.com/GuilhermeRoesler/DiskAudit/main/"
-    "docs/images/dashboard-hero.png"
+    "docs/screenshots/demo.webp"
 )
 
 

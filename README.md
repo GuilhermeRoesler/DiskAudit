@@ -15,9 +15,7 @@ Auditoria de disco **determinística** (sem IA) a partir de export CSV do [WinDi
 
 > **Atenção:** a ferramenta apenas **recomenda** ações. Nenhum arquivo é deletado automaticamente.
 
-![Dashboard — KPIs e resumo executivo](docs/images/dashboard-hero.png)
-
-![Dashboard — plano de ação com candidatos por risco](docs/images/dashboard-candidates.png)
+![Disk Audit — dashboard demo](docs/screenshots/demo.webp)
 
 ## Resultado no fixture de demo
 
