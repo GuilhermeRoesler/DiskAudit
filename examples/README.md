@@ -10,6 +10,12 @@ Relatório HTML anonymizado gerado a partir de `tests/fixtures/sample.csv`.
 ## Regenerar
 
 ```bash
+python scripts/generate_demo.py
+```
+
+Equivalente manual:
+
+```bash
 python -m diskaudit.cli tests/fixtures/sample.csv -o examples/demo_report.html
 ```
 

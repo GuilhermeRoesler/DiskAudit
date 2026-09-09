@@ -26,20 +26,30 @@
     --accent: #f59e0b;
     --safe: #22c55e;
     --warn: #f59e0b;
+    --protect: #94a3b8;
     --danger: #ef4444;
-    --info: #3b82f6;
+    --chart: #f59e0b;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  html, body { margin: 0; padding: 0; color: var(--text);
                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
-               line-height: 1.5; }
+               line-height: 1.5;
+               background: var(--bg);
+               background-image:
+                 radial-gradient(ellipse 90% 50% at 50% -10%, rgba(245,158,11,.07), transparent 55%),
+                 radial-gradient(ellipse 60% 40% at 100% 0%, rgba(148,163,184,.04), transparent 45%);
+               background-attachment: fixed; }
   .container { max-width: 1300px; margin: 0 auto; padding: 28px 24px 64px; }
-  h1 { margin: 0 0 4px; font-size: 28px; }
+  header { margin-bottom: 4px; padding-bottom: 16px; position: relative; }
+  header::after { content: ''; display: block; height: 2px; margin-top: 14px;
+                  background: linear-gradient(90deg, var(--accent), transparent 72%); border-radius: 1px; }
+  h1 { margin: 0 0 6px; font-size: 30px; font-weight: 700; letter-spacing: -.02em; }
+  h1 .drive { color: var(--accent); }
   h2 { margin: 36px 0 14px; font-size: 20px; border-left: 3px solid var(--accent); padding-left: 10px; }
   .sub { color: var(--muted); margin-bottom: 18px; }
   .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin: 22px 0; }
   .kpi { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
-  .kpi .v { font-size: 26px; font-weight: 600; }
+  .kpi .v { font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
   .kpi .l { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
   .kpi.safe .v { color: var(--safe); }
   .kpi.warn .v { color: var(--warn); }
@@ -53,33 +63,39 @@
   .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
   .panel h3 { margin: 0 0 14px; font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
   th { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
   th[data-sort] { cursor: pointer; }
   th[data-sort]:hover, th[data-sort]:focus-visible { color: var(--text); outline: 2px solid var(--accent); outline-offset: 2px; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,.02); }
+  tbody tr:hover { background: rgba(245,158,11,.04); }
   td.num { text-align: right; font-variant-numeric: tabular-nums; }
   .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
   .pill.safe { background: rgba(34,197,94,.15); color: var(--safe); }
   .pill.warn { background: rgba(245,158,11,.15); color: var(--warn); }
+  .pill.protect { background: rgba(148,163,184,.18); color: var(--protect); }
   .pill.danger { background: rgba(239,68,68,.15); color: var(--danger); }
-  .pill.info { background: rgba(59,130,246,.15); color: var(--info); }
-  .bar { background: var(--panel2); border-radius: 4px; overflow: hidden; height: 8px; min-width: 60px; max-width: 200px; }
+  .bar { background: var(--panel2); border-radius: 4px; overflow: hidden; height: 8px; min-width: 60px; max-width: 200px; margin-top: 4px; }
   .bar > div { background: var(--accent); height: 100%; }
-  .bar.s > div { background: var(--safe); }
-  .bar.w > div { background: var(--warn); }
-  .bar.d > div { background: var(--danger); }
+  .bar.safe > div { background: var(--safe); }
+  .bar.warn > div { background: var(--warn); }
+  .bar.protect > div { background: var(--protect); }
   .filterbox { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
   .filterbox input, .filterbox select { background: var(--panel2); color: var(--text); border: 1px solid var(--border);
                                          border-radius: 6px; padding: 6px 10px; font-size: 13px; }
   .filterbox input:focus-visible, .filterbox select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .path { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 12px; word-break: break-all; }
-  .rationale { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .path { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 11px; color: var(--muted); word-break: break-all; }
+  .action { margin-top: 6px; color: var(--text); font-weight: 600; }
+  .action .label { color: var(--muted); font-weight: 500; }
+  .rationale { color: var(--muted); font-size: 12px; margin-top: 4px; line-height: 1.45; }
+  .cat { color: var(--muted); font-size: 12px; }
   .chartwrap { position: relative; height: 320px; }
   .chartwrap.small { height: 220px; }
   .empty-row td { color: var(--muted); text-align: center; padding: 24px 10px; }
   .legend-note { color: var(--muted); font-size: 12px; margin-top: 6px; }
-  .summary-block { background: linear-gradient(135deg, rgba(245,158,11,.08), rgba(59,130,246,.04));
-                   border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin: 22px 0; }
+  .summary-block { background: linear-gradient(135deg, rgba(245,158,11,.1), rgba(245,158,11,.02) 55%, transparent);
+                   border: 1px solid var(--border); border-left: 3px solid var(--accent);
+                   border-radius: 12px; padding: 18px; margin: 22px 0; }
   details > summary { cursor: pointer; color: var(--muted); padding: 6px 0; }
   details > summary:hover { color: var(--text); }
   code { background: var(--panel2); padding: 2px 6px; border-radius: 4px; font-size: 12px; }
@@ -93,7 +109,7 @@
 <body>
 <div class="container">
   <header>
-    <h1>Auditoria de disco — {{ drive_label }}</h1>
+    <h1>Auditoria de disco — <span class="drive">{{ drive_label }}</span></h1>
     <div class="sub">WinDirStat snapshot processado em {{ processed_date }} · <span id="root-summary"></span></div>
   </header>
 
@@ -241,7 +257,9 @@ function setChartDesc(id, labels, values) {
   el.textContent = labels.map((l, i) => l + ': ' + values[i].toFixed(2) + ' GB').join('; ');
 }
 
-function barChart(ctxId, labels, values, color='#f59e0b') {
+const CHART_COLOR = '#f59e0b';
+
+function barChart(ctxId, labels, values, color=CHART_COLOR) {
   const el = document.getElementById(ctxId);
   setChartDesc(ctxId, labels, values);
   if (!labels.length) {
@@ -293,7 +311,7 @@ new Chart(document.getElementById('chart-years'), {
 });
 
 const RISK_LABEL = { seguro: 'Seguro', cuidado: 'Cuidado', nao_tocar: 'Não tocar' };
-const RISK_CLASS = { seguro: 'safe', cuidado: 'warn', nao_tocar: 'info' };
+const RISK_CLASS = { seguro: 'safe', cuidado: 'warn', nao_tocar: 'protect' };
 
 function escape(s) {
   return (s || '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -340,13 +358,13 @@ function renderCand() {
   tbody.innerHTML = rows.map(r => `
     <tr>
       <td class="num"><strong>${r.size.toFixed(2)} GB</strong>
-        <div class="bar ${RISK_CLASS[r.risk][0]}"><div style="width:${(r.size/maxSize*100).toFixed(0)}%"></div></div>
+        <div class="bar ${RISK_CLASS[r.risk]}"><div style="width:${(r.size/maxSize*100).toFixed(0)}%"></div></div>
       </td>
       <td><span class="pill ${RISK_CLASS[r.risk]}">${RISK_LABEL[r.risk]}</span></td>
-      <td><span style="color: var(--muted); font-size: 12px;">${escape(r.category)}</span></td>
+      <td><span class="cat">${escape(r.category)}</span></td>
       <td>
         <div class="path">${escape(r.path)}</div>
-        <div style="margin-top: 6px;"><strong>Ação:</strong> ${escape(r.action)}</div>
+        <div class="action"><span class="label">Ação:</span> ${escape(r.action)}</div>
         <div class="rationale">${escape(r.rationale)}</div>
       </td>
     </tr>`).join('');

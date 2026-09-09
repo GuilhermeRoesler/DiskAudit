@@ -106,7 +106,7 @@ python disk_audit.py "D:\exports\scan.csv" -o "D:\reports\auditoria.html"
 python disk_audit.py disk.csv -t diskaudit/templates -o test_report.html
 
 # Regenerar o demo do portfólio
-python -m diskaudit.cli tests/fixtures/sample.csv -o examples/demo_report.html
+python scripts/generate_demo.py
 ```
 
 | Argumento | Padrão | Descrição |
@@ -177,6 +177,7 @@ diskaudit/                     # Pacote instalável
   cli.py                       # Entry point disk-audit
 disk_audit.py                  # Shim de compatibilidade
 scripts/validate_csv.py        # Validação do CSV
+scripts/generate_demo.py       # Regenera examples/demo_report.html
 run.bat                        # Atalho Windows
 examples/demo_report.html      # Demo anonymizada
 docs/                          # Exemplos, referência e imagens

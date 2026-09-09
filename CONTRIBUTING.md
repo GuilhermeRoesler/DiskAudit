@@ -34,7 +34,7 @@ pre-commit install
 5. Regenerar o demo se o relatório mudar:
 
 ```bash
-python -m diskaudit.cli tests/fixtures/sample.csv -o examples/demo_report.html
+python scripts/generate_demo.py
 ```
 
 ## Escopo

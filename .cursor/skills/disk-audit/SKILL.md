@@ -32,6 +32,7 @@ Ferramenta **determinística** (sem IA) que lê um CSV exportado pelo [WinDirSta
 | `requirements.txt` | `pandas>=2.0`, `jinja2>=3.1` |
 | `pyproject.toml` | Empacotamento, Ruff, mypy, coverage, entry point `disk-audit` |
 | `scripts/validate_csv.py` | Valida CSV antes da análise |
+| `scripts/generate_demo.py` | Regenera `examples/demo_report.html` a partir do fixture |
 | `examples/demo_report.html` | Relatório demo anonymizado |
 | `docs/` | Exemplos, referência e imagens |
 | `CHANGELOG.md` | Histórico de versões |

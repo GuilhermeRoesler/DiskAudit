@@ -16,9 +16,11 @@ e este projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - Dependabot, pre-commit, workflow de publish no PyPI e upload Codecov
 - Fixture expandido (WSL, LLM, Android, Minecraft, pagefile, downloads ZIP, etc.)
 - Testes de CLI, rationales e resumo executivo
+- Script `scripts/generate_demo.py` para regenerar o relatório demo
 
 ### Alterado
 
+- Dashboard: “Não tocar” em slate, fundo sutil, zebra na tabela e hierarquia mais clara no plano de ação
 - GitHub Pages gera o demo a partir do fixture a cada deploy (sem drift)
 - `run.bat` instala com `pip install -e .`, valida o CSV e chama a CLI
 - Filtro de perfil `nao_tocar` aplica-se apenas a conteúdo pessoal (não a pagefile/sistema)
