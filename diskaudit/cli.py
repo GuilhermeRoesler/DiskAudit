@@ -9,6 +9,7 @@ from pathlib import Path
 from diskaudit.analyze import analyze, load_csv
 from diskaudit.render import DEFAULT_TEMPLATE_DIR, render_html
 from diskaudit.util import log
+from diskaudit.validate import validate
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -16,6 +17,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("csv", nargs="?", default="disk.csv", help="Caminho do CSV exportado")
     parser.add_argument("-o", "--output", default="disk_report.html", help="Arquivo HTML de saída")
     parser.add_argument("-t", "--template-dir", default=None, help="Diretório do template")
+    parser.add_argument(
+        "--no-validate",
+        action="store_true",
+        help="Pular validação do CSV antes da análise",
+    )
     args = parser.parse_args(argv)
 
     cwd = Path.cwd()
@@ -25,6 +31,17 @@ def main(argv: list[str] | None = None) -> int:
     if not csv_path.exists():
         log(f"Erro: arquivo não encontrado: {csv_path}")
         return 1
+
+    if not args.no_validate:
+        errors, warnings = validate(csv_path)
+        for w in warnings:
+            log(f"  AVISO: {w}")
+        if errors:
+            log("CSV inválido:")
+            for e in errors:
+                log(f"  ERRO: {e}")
+            log("Use --no-validate para forçar (não recomendado).")
+            return 1
 
     template_dir = Path(args.template_dir) if args.template_dir else DEFAULT_TEMPLATE_DIR
     output_path = Path(args.output)

@@ -19,7 +19,7 @@ Auditoria de disco **determinística** (sem IA) a partir de export CSV do [WinDi
 
 ## Resultado no fixture de demo
 
-No CSV sintético (`tests/fixtures/sample.csv`, ~250 GB simulados), a análise encontra **~20 GB seguros** para limpeza, **~44 GB em “cuidado”** e **~43 GB “não tocar”** (dados pessoais/sistema) — com justificativa por item (Docker, WSL, modelos LLM, Android, caches, etc.).
+No CSV sintético (`tests/fixtures/sample.csv`, ~250 GB simulados), a análise encontra **~22 GB seguros** para limpeza, **~44 GB em “cuidado”** e **~43 GB “não tocar”** (dados pessoais/sistema) — com justificativa por item (Docker, WSL, modelos LLM, Android, caches, etc.).
 
 ## Por que este projeto
 

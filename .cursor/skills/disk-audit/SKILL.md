@@ -43,14 +43,16 @@ Ferramenta **determinística** (sem IA) que lê um CSV exportado pelo [WinDirSta
 
 ```bash
 pip install -e .
-python scripts/validate_csv.py disk.csv   # opcional, recomendado
+python scripts/validate_csv.py disk.csv   # opcional (a CLI já valida por padrão)
 python disk_audit.py [disk.csv] [-o disk_report.html] [-t template_dir]
 # ou: disk-audit disk.csv
+#     disk-audit disk.csv --no-validate
 ```
 
-1. `load_csv()` — lê CSV UTF-8, normaliza paths (`/` → `\`), separa pastas vs arquivos
-2. `analyze()` — detecta raiz, perfil de usuário, agrega métricas e candidatos
-3. `render_html()` — injeta `data_json` no template via Jinja2
+1. `validate()` — checa colunas/tipos (na CLI, salvo `--no-validate`)
+2. `load_csv()` — lê CSV UTF-8, normaliza paths (`/` → `\`), separa pastas vs arquivos
+3. `analyze()` — detecta raiz, perfil de usuário, agrega métricas e candidatos
+4. `render_html()` — injeta `data_json` no template via Jinja2
 
 ## Formato do CSV (WinDirStat)
 

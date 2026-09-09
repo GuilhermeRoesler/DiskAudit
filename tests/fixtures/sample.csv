@@ -41,7 +41,11 @@ C:\Users\TestUser\AppData\Local\Claude-3p,15,3,2200000000,2200000000,2023-11-01T
 C:\Users\TestUser\AppData\Local\Packages\Claude_1.0.0,20,4,1800000000,1800000000,2024-05-01T00:00:00
 C:\Users\TestUser\AppData\Local\Claude-3p\Claude-3p-rootfs.vhdx,0,0,900000000,900000000,2023-11-01T00:00:00
 C:\Users\TestUser\AppData\Local\Ollama,12,2,700000000,700000000,2024-04-20T00:00:00
+C:\Users\TestUser\AppData\Local\Ollama\updates_v2,4,0,700000000,700000000,2024-04-20T00:00:00
 C:\Users\TestUser\AppData\Local\Ollama\updates_v2\OllamaSetup.exe,0,0,450000000,450000000,2024-03-01T00:00:00
+C:\Users\TestUser\Projects\frontend\dist,30,2,1500000000,1500000000,2024-04-01T00:00:00
+C:\Users\TestUser\Projects\frontend\package.json,0,0,2000,2000,2024-04-01T00:00:00
+C:\Users\TestUser\Projects\frontend\src,40,5,50000000,50000000,2024-04-01T00:00:00
 C:\Users\TestUser\AppData\Local\npm-cache,200,5,3200000000,3200000000,2024-05-01T00:00:00
 C:\Users\TestUser\AppData\Local\pnpm,80,3,800000000,800000000,2024-05-01T00:00:00
 C:\Users\TestUser\AppData\Local\pip\cache,50,2,600000000,600000000,2024-04-01T00:00:00

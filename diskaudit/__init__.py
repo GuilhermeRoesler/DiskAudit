@@ -14,9 +14,10 @@ from diskaudit.constants import (
     COL_PHYSICAL,
     COL_SUBDIRS,
 )
-from diskaudit.models import CandidateRule, Frames
+from diskaudit.models import Candidate, CandidateRule, Frames, ReportData, RiskLevel
 from diskaudit.render import render_html
 from diskaudit.rules import CANDIDATE_RULES, PATTERNS
+from diskaudit.validate import validate
 
 __all__ = [
     "BYTES_PER_GB",
@@ -27,12 +28,16 @@ __all__ = [
     "COL_PATH",
     "COL_PHYSICAL",
     "COL_SUBDIRS",
+    "Candidate",
     "CandidateRule",
     "Frames",
     "PATTERNS",
+    "ReportData",
+    "RiskLevel",
     "analyze",
     "load_csv",
     "main",
     "render_html",
+    "validate",
     "__version__",
 ]

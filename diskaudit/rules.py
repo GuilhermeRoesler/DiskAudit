@@ -198,12 +198,12 @@ CANDIDATE_RULES: list[CandidateRule] = [
         0.5,
     ),
     CandidateRule(
-        r"\\AppData\\Local\\Ollama$",
+        r"\\AppData\\Local\\Ollama\\updates_v2$",
         "seguro",
         "Cache de updater",
         "Deletar updates_v2/",
         "updater",
-        0.5,
+        0.3,
     ),
     CandidateRule(r"\\Music$", "nao_tocar", "Pessoal (música)", "Backup em nuvem/HD externo", "personal", 3.0),
     CandidateRule(

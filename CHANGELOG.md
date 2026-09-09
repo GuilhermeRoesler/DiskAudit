@@ -5,6 +5,23 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [1.1.1] — 2026-09-08
+
+### Adicionado
+
+- Validação do CSV integrada à CLI (flag `--no-validate` para pular)
+- Tipagem `Candidate`, `ReportData` e `RiskLevel` no pacote
+- Detecção de `dist/` baseada apenas no CSV (marcadores `package.json` / `src`)
+
+### Alterado
+
+- Regra Ollama aponta para `updates_v2/` (não a pasta inteira do app)
+- `scripts/validate_csv.py` reutiliza `diskaudit.validate`
+
+### Corrigido
+
+- Escape de HTML no resumo executivo (paths vindos do CSV)
+
 ## [1.1.0] — 2026-09-08
 
 ### Adicionado

@@ -7,8 +7,10 @@ from datetime import datetime
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from markupsafe import escape
 
 from diskaudit._version import __version__
+from diskaudit.models import ReportData
 from diskaudit.util import log
 
 PACKAGE_DIR = Path(__file__).resolve().parent
@@ -22,13 +24,13 @@ OG_IMAGE_URL = (
 )
 
 
-def build_executive_summary(data: dict, user: str | None) -> str:
+def build_executive_summary(data: ReportData, user: str | None) -> str:
     total = data["root_gb"]
     users_entry = next(
         (x for x in data["level2"] if x["path"].rstrip("\\").endswith("Users")), None
     )
     users_pct = round(users_entry["gb"] / total * 100) if users_entry and total else 0
-    user_label = user.rstrip("\\") if user else "Users\\…"
+    user_label = escape(user.rstrip("\\") if user else "Users\\…")
 
     safe = data["tier_totals"]["seguro"]
     careful = data["tier_totals"]["cuidado"]
@@ -37,8 +39,10 @@ def build_executive_summary(data: dict, user: str | None) -> str:
     for c in data["candidates"]:
         if c["risk"] == "nao_tocar":
             continue
-        name = c["path"].split("\\")[-1][:40] or c["path"][:40]
-        highlights.append(f"<strong>{name}</strong> ({c['size']:.1f} GB — {c['category'].lower()})")
+        raw_name = c["path"].split("\\")[-1][:40] or c["path"][:40]
+        name = escape(raw_name)
+        category = escape(c["category"].lower())
+        highlights.append(f"<strong>{name}</strong> ({c['size']:.1f} GB — {category})")
         if len(highlights) >= 4:
             break
 
@@ -67,7 +71,7 @@ def _load_chart_js() -> str:
 
 
 def render_html(
-    data: dict, root: str, user: str | None, template_dir: Path, output: Path
+    data: ReportData, root: str, user: str | None, template_dir: Path, output: Path
 ) -> None:
     env = Environment(
         loader=FileSystemLoader(template_dir), autoescape=select_autoescape(["html"])
@@ -80,7 +84,7 @@ def render_html(
         summary_html=build_executive_summary(data, user),
         data_json=json.dumps(data, ensure_ascii=False),
         row_count=f"{data['row_count']:,}".replace(",", "."),
-        compression_delta=data.get("compression_delta_gb", 0),
+        compression_delta=data["compression_delta_gb"],
         chart_js=_load_chart_js(),
         package_version=__version__,
         repo_url=REPO_URL,

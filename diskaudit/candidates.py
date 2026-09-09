@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import re
-from pathlib import Path, PureWindowsPath
+from pathlib import PureWindowsPath
 
 import pandas as pd
 
 from diskaudit.constants import COL_PHYSICAL
-from diskaudit.models import Frames
+from diskaudit.models import Candidate, Frames, RiskLevel, TierTotals
 from diskaudit.query import find_dirs, find_files
 from diskaudit.rationales import RATIONALE_FNS, rationale_generic, rationale_node_modules
 from diskaudit.rules import CANDIDATE_RULES
@@ -16,11 +16,18 @@ from diskaudit.util import gb
 
 
 def make_candidate(
-    row: pd.Series, risk: str, category: str, action: str, rationale_key: str, ctx: dict
-) -> dict:
+    row: pd.Series,
+    risk: RiskLevel,
+    category: str,
+    action: str,
+    rationale_key: str,
+    ctx: dict,
+    *,
+    path: str | None = None,
+) -> Candidate:
     fn = RATIONALE_FNS.get(rationale_key, rationale_generic)
     return {
-        "path": row["path_norm"],
+        "path": path if path is not None else row["path_norm"],
         "size": gb(row[COL_PHYSICAL]),
         "risk": risk,
         "category": category,
@@ -29,8 +36,19 @@ def make_candidate(
     }
 
 
-def find_special_candidates(frames: Frames, user: str | None, ctx: dict) -> list[dict]:
-    found: list[dict] = []
+def _csv_has_child(frames: Frames, parent: str, name: str) -> bool:
+    """True se o CSV contém o filho `name` sob `parent` (arquivo ou pasta)."""
+    base = parent.rstrip("\\") + "\\" + name
+    paths = frames.all["path_norm"]
+    return bool(
+        paths.eq(base).any()
+        or paths.eq(base + "\\").any()
+        or paths.str.startswith(base + "\\", na=False).any()
+    )
+
+
+def find_special_candidates(frames: Frames, user: str | None, ctx: dict) -> list[Candidate]:
+    found: list[Candidate] = []
 
     if user:
         dl = user + "Downloads\\"
@@ -45,7 +63,12 @@ def find_special_candidates(frames: Frames, user: str | None, ctx: dict) -> list
             if len(zips) >= 3 and row["gb"] >= 2:
                 found.append(
                     make_candidate(
-                        row, "cuidado", "Downloads", "Mover/deletar zips se já extraídos", "downloads_zip", ctx
+                        row,
+                        "cuidado",
+                        "Downloads",
+                        "Mover/deletar zips se já extraídos",
+                        "downloads_zip",
+                        ctx,
                     )
                 )
 
@@ -64,11 +87,17 @@ def find_special_candidates(frames: Frames, user: str | None, ctx: dict) -> list
 
     dist_rows = find_dirs(frames, r"\\dist$", 1.0).head(3)
     for _, row in dist_rows.iterrows():
-        parent = PureWindowsPath(row["path_norm"]).parent
-        # Checagem local opcional (no Windows real); no CSV sintético raramente casa.
-        if Path(parent).joinpath("package.json").exists() or Path(parent).joinpath("src").exists():
+        parent = str(PureWindowsPath(row["path_norm"]).parent)
+        if _csv_has_child(frames, parent, "package.json") or _csv_has_child(frames, parent, "src"):
             found.append(
-                make_candidate(row, "seguro", "Dev (build artifact)", "Deletar dist/ — regenere com build", "dist", ctx)
+                make_candidate(
+                    row,
+                    "seguro",
+                    "Dev (build artifact)",
+                    "Deletar dist/ — regenere com build",
+                    "dist",
+                    ctx,
+                )
             )
 
     for regex, cat, action in [
@@ -81,9 +110,9 @@ def find_special_candidates(frames: Frames, user: str | None, ctx: dict) -> list
     return found
 
 
-def find_candidates(frames: Frames, user: str | None) -> list[dict]:
+def find_candidates(frames: Frames, user: str | None) -> list[Candidate]:
     ctx = {"frames": frames}
-    candidates: list[dict] = []
+    candidates: list[Candidate] = []
     seen_paths: set[str] = set()
 
     for rule in CANDIDATE_RULES:
@@ -98,16 +127,16 @@ def find_candidates(frames: Frames, user: str | None) -> list[dict]:
             if rule.risk == "nao_tocar" and user and rule.rationale_fn == "personal":
                 if not row["path_norm"].startswith(user.rstrip("\\")):
                     continue
-            fn = RATIONALE_FNS.get(rule.rationale_fn, rationale_generic)
             candidates.append(
-                {
-                    "path": path,
-                    "size": gb(row[COL_PHYSICAL]),
-                    "risk": rule.risk,
-                    "category": rule.category,
-                    "action": rule.action,
-                    "rationale": fn(row, ctx),
-                }
+                make_candidate(
+                    row,
+                    rule.risk,
+                    rule.category,
+                    rule.action,
+                    rule.rationale_fn,
+                    ctx,
+                    path=path,
+                )
             )
             seen_paths.add(path)
 
@@ -120,8 +149,9 @@ def find_candidates(frames: Frames, user: str | None) -> list[dict]:
     return candidates
 
 
-def compute_tier_totals(candidates: list[dict]) -> dict[str, float]:
-    totals = {"seguro": 0.0, "cuidado": 0.0, "nao_tocar": 0.0}
+def compute_tier_totals(candidates: list[Candidate]) -> TierTotals:
+    totals: TierTotals = {"seguro": 0.0, "cuidado": 0.0, "nao_tocar": 0.0}
     for c in candidates:
-        totals[c["risk"]] = round(totals.get(c["risk"], 0) + float(c["size"]), 1)
+        risk = c["risk"]
+        totals[risk] = round(totals[risk] + float(c["size"]), 1)
     return totals

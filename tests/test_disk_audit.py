@@ -15,7 +15,7 @@ import disk_audit as da  # noqa: E402
 from diskaudit import __version__  # noqa: E402
 from diskaudit.cli import main as cli_main  # noqa: E402
 from diskaudit.render import build_executive_summary  # noqa: E402
-from scripts.validate_csv import validate  # noqa: E402
+from diskaudit.validate import validate  # noqa: E402
 
 FIXTURE = Path(__file__).parent / "fixtures" / "sample.csv"
 
@@ -68,9 +68,26 @@ class TestDiskAuditSmoke(unittest.TestCase):
     def test_demo_recovery_story_numbers(self) -> None:
         """Números estáveis do fixture — usados no README de portfólio."""
         self.assertEqual(self.data["root_gb"], 250.0)
-        self.assertAlmostEqual(self.data["tier_totals"]["seguro"], 20.2, places=1)
+        self.assertAlmostEqual(self.data["tier_totals"]["seguro"], 21.7, places=1)
         self.assertAlmostEqual(self.data["tier_totals"]["cuidado"], 44.4, places=1)
         self.assertAlmostEqual(self.data["tier_totals"]["nao_tocar"], 43.0, places=1)
+
+    def test_ollama_targets_updates_v2_only(self) -> None:
+        updater = next(c for c in self.data["candidates"] if c["category"] == "Cache de updater")
+        self.assertTrue(updater["path"].endswith("\\updates_v2"))
+        self.assertEqual(updater["risk"], "seguro")
+        self.assertFalse(
+            any(
+                c["path"].endswith("\\Ollama") and c["category"] == "Cache de updater"
+                for c in self.data["candidates"]
+            )
+        )
+
+    def test_dist_detected_via_csv_markers(self) -> None:
+        dist = [c for c in self.data["candidates"] if c["category"] == "Dev (build artifact)"]
+        self.assertEqual(len(dist), 1)
+        self.assertTrue(dist[0]["path"].endswith("\\dist"))
+        self.assertEqual(dist[0]["risk"], "seguro")
 
     def test_expanded_rationales_present(self) -> None:
         by_path_suffix = {c["path"].rstrip("\\").split("\\")[-1]: c for c in self.data["candidates"]}
@@ -202,6 +219,54 @@ class TestCli(unittest.TestCase):
 
     def test_cli_missing_file(self) -> None:
         self.assertEqual(cli_main([str(ROOT / "no_such_file.csv")]), 1)
+
+    def test_cli_rejects_invalid_csv(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            bad = Path(tmp) / "bad.csv"
+            bad.write_text("Name,Size\nfoo,1\n", encoding="utf-8")
+            out = Path(tmp) / "out.html"
+            self.assertEqual(cli_main([str(bad), "-o", str(out)]), 1)
+            self.assertFalse(out.exists())
+
+    def test_cli_no_validate_skips_checks(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            # CSV válido estruturalmente, mas exercita a flag
+            out = Path(tmp) / "out.html"
+            code = cli_main([str(FIXTURE), "-o", str(out), "--no-validate"])
+            self.assertEqual(code, 0)
+            self.assertTrue(out.is_file())
+
+
+class TestExecutiveSummaryEscape(unittest.TestCase):
+    def test_summary_escapes_html_in_paths(self) -> None:
+        data = {
+            "root_gb": 10.0,
+            "root_files": 1,
+            "tier_totals": {"seguro": 1.0, "cuidado": 2.0, "nao_tocar": 0.0},
+            "level2": [{"path": "C:\\Users", "gb": 5.0, "files": 1}],
+            "appdata_local": [],
+            "appdata_roaming": [],
+            "top_files": [],
+            "pattern_summary": [],
+            "candidates": [
+                {
+                    "path": "C:\\Users\\x\\<script>evil</script>",
+                    "size": 1.5,
+                    "risk": "seguro",
+                    "category": "Cache",
+                    "action": "Limpar",
+                    "rationale": "x",
+                }
+            ],
+            "years_data": [],
+            "ext_top": [],
+            "compression_delta_gb": 0.0,
+            "row_count": 1,
+        }
+        html = build_executive_summary(data, "C:\\Users\\<evil>\\")  # type: ignore[arg-type]
+        self.assertNotIn("<script>", html)
+        self.assertIn("&lt;script&gt;", html)
+        self.assertIn("&lt;evil&gt;", html)
 
 
 class TestValidateFixture(unittest.TestCase):

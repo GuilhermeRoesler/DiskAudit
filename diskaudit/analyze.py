@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from pathlib import Path, PureWindowsPath
 
 import pandas as pd
@@ -18,7 +19,15 @@ from diskaudit.constants import (
     COL_SUBDIRS,
     SKIP_USER_PROFILES,
 )
-from diskaudit.models import Frames
+from diskaudit.models import (
+    ExtBucket,
+    Frames,
+    PathMetric,
+    PatternHit,
+    ReportData,
+    TopFile,
+    YearBucket,
+)
 from diskaudit.rules import PATTERNS
 from diskaudit.util import gb, log
 
@@ -69,7 +78,7 @@ def detect_user_profile(frames: Frames, root: str) -> str | None:
     return path if path.endswith("\\") else path + "\\"
 
 
-def compute_level2(frames: Frames, root: str) -> list[dict]:
+def compute_level2(frames: Frames, root: str) -> list[PathMetric]:
     escaped = re.escape(root.rstrip("\\"))
     pattern = rf"^{escaped}\\[^\\]+$"
     rows = frames.all[frames.all["path_norm"].str.match(pattern, na=False)].sort_values(
@@ -81,7 +90,9 @@ def compute_level2(frames: Frames, root: str) -> list[dict]:
     ]
 
 
-def compute_appdata_children(frames: Frames, base: str, label_fn) -> list[dict]:
+def compute_appdata_children(
+    frames: Frames, base: str, label_fn: Callable[[str], str]
+) -> list[PathMetric]:
     escaped = re.escape(base.rstrip("\\"))
     pattern = rf"^{escaped}\\[^\\]+$"
     rows = frames.dirs[frames.dirs["path_norm"].str.match(pattern, na=False)].sort_values(
@@ -98,7 +109,7 @@ def compute_appdata_children(frames: Frames, base: str, label_fn) -> list[dict]:
     ]
 
 
-def compute_top_files(frames: Frames, n: int = 40) -> list[dict]:
+def compute_top_files(frames: Frames, n: int = 40) -> list[TopFile]:
     top = frames.files.nlargest(n, COL_PHYSICAL)
     return [
         {
@@ -110,7 +121,7 @@ def compute_top_files(frames: Frames, n: int = 40) -> list[dict]:
     ]
 
 
-def compute_years(frames: Frames) -> list[dict]:
+def compute_years(frames: Frames) -> list[YearBucket]:
     files = frames.files.copy()
     files["year"] = pd.to_datetime(files[COL_MTIME], utc=True).dt.year.astype(str)
     grouped = (
@@ -119,7 +130,7 @@ def compute_years(frames: Frames) -> list[dict]:
     return [{"year": y, "files": int(r["files"]), "gb": gb(r["gb"])} for y, r in grouped.iterrows()]
 
 
-def compute_extensions(frames: Frames, n: int = 20) -> list[dict]:
+def compute_extensions(frames: Frames, n: int = 20) -> list[ExtBucket]:
     files = frames.files.copy()
 
     def ext_of(path: str) -> str:
@@ -138,8 +149,8 @@ def compute_extensions(frames: Frames, n: int = 20) -> list[dict]:
     return [{"ext": e, "count": int(r["count"]), "gb": gb(r["gb"])} for e, r in grouped.iterrows()]
 
 
-def compute_patterns(frames: Frames) -> list[dict]:
-    results: list[dict] = []
+def compute_patterns(frames: Frames) -> list[PatternHit]:
+    results: list[PatternHit] = []
     dirs = frames.dirs
     for name, regex in PATTERNS:
         matched = dirs[dirs["path_norm"].str.contains(regex, regex=True, na=False)]
@@ -158,13 +169,13 @@ def compute_patterns(frames: Frames) -> list[dict]:
     return results
 
 
-def analyze(frames: Frames) -> tuple[dict, str, str | None]:
+def analyze(frames: Frames) -> tuple[ReportData, str, str | None]:
     root, root_row = detect_root(frames)
     user = detect_user_profile(frames, root)
 
     level2 = compute_level2(frames, root)
-    appdata_local: list[dict] = []
-    appdata_roaming: list[dict] = []
+    appdata_local: list[PathMetric] = []
+    appdata_roaming: list[PathMetric] = []
     if user:
         appdata_local = compute_appdata_children(
             frames, user + "AppData\\Local\\", lambda p: p.replace(user + "AppData\\Local\\", "")
@@ -177,7 +188,7 @@ def analyze(frames: Frames) -> tuple[dict, str, str | None]:
 
     candidates = find_candidates(frames, user)
 
-    data = {
+    data: ReportData = {
         "root_gb": gb(root_row[COL_PHYSICAL]),
         "root_files": int(root_row[COL_FILES]),
         "tier_totals": compute_tier_totals(candidates),
