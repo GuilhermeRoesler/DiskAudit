@@ -49,8 +49,38 @@
     --protect: #94a3b8;
     --danger: #ef4444;
     --chart: #f59e0b;
+    --scrollbar-size: 10px;
+    --scrollbar-track: #12151c;
+    --scrollbar-thumb: #3a4254;
+    --scrollbar-thumb-hover: #f59e0b;
   }
   * { box-sizing: border-box; }
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
+  *::-webkit-scrollbar {
+    width: var(--scrollbar-size);
+    height: var(--scrollbar-size);
+  }
+  *::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #4a5368, var(--scrollbar-thumb));
+    border: 2px solid var(--scrollbar-track);
+    border-radius: 999px;
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #fbbf24, var(--scrollbar-thumb-hover));
+    border: 2px solid var(--scrollbar-track);
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-corner {
+    background: var(--scrollbar-track);
+  }
   html, body { margin: 0; padding: 0; color: var(--text);
                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
                line-height: 1.5;
