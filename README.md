@@ -178,7 +178,8 @@ scripts/validate_csv.py        # Validação do CSV
 scripts/generate_demo.py       # Regenera examples/demo_report.html
 run.bat                        # Atalho Windows
 examples/demo_report.html      # Demo anonymizada
-docs/                          # Exemplos, referência e imagens
+.cursor/skills/disk-audit/     # Spec canônica (examples, reference)
+docs/                          # Índice + screenshots
 tests/                         # Unittest + fixture CSV
 .github/workflows/             # CI + Pages + PyPI
 ```
@@ -191,8 +192,9 @@ O CSV e o relatório contêm caminhos e nomes de arquivos do seu sistema. Ambos 
 
 ## Documentação
 
-- [docs/examples.md](docs/examples.md) — fluxos, extensão de regras, troubleshooting
-- [docs/reference.md](docs/reference.md) — regras, padrões e rationales
+- [.cursor/skills/disk-audit/examples.md](.cursor/skills/disk-audit/examples.md) — fluxos, extensão de regras, troubleshooting
+- [.cursor/skills/disk-audit/reference.md](.cursor/skills/disk-audit/reference.md) — regras, padrões e rationales
+- [docs/README.md](docs/README.md) — índice da documentação + screenshots
 - [examples/README.md](examples/README.md) — como regenerar o demo
 - [CHANGELOG.md](CHANGELOG.md) — histórico de versões
 - [CONTRIBUTING.md](CONTRIBUTING.md) — como contribuir

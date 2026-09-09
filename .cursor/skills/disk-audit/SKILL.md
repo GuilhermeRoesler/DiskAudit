@@ -34,7 +34,8 @@ Ferramenta **determinística** (sem IA) que lê um CSV exportado pelo [WinDirSta
 | `scripts/validate_csv.py` | Valida CSV antes da análise |
 | `scripts/generate_demo.py` | Regenera `examples/demo_report.html` a partir do fixture |
 | `examples/demo_report.html` | Relatório demo anonymizado |
-| `docs/` | Exemplos, referência e imagens |
+| `.cursor/skills/disk-audit/` | Spec canônica (SKILL, examples, reference) |
+| `docs/` | Índice público + screenshots (aponta para a skill) |
 | `CHANGELOG.md` | Histórico de versões |
 | `CONTRIBUTING.md` / `SECURITY.md` | Contribuição e segurança |
 
@@ -80,6 +81,7 @@ Regras em `diskaudit/rules.py` (`CANDIDATE_RULES`, `PATTERNS`). Rationales em `d
 
 ## Recursos
 
-- [docs/examples.md](../../../docs/examples.md)
-- [docs/reference.md](../../../docs/reference.md)
+- [examples.md](examples.md)
+- [reference.md](reference.md)
+- [docs/README.md](../../../docs/README.md) — índice público + screenshots
 - Demo: https://guilhermeroesler.github.io/DiskAudit/
